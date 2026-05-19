@@ -3220,33 +3220,39 @@
           return peakH;
         };
 
-        // Animated wave crests — multiple bands at different depths drift horizontally.
+        // Animated wave crests — graduated white caps. Distant bands stay subtle ocean-toned
+        // ripples; near bands break into frothy white caps.
         const waveT = state.time;
         const oceanHi = shade(oceanColor, 0.32);
-        const oceanLo = shade(oceanColor, -0.18);
+        // White-cap colour, slightly muted at night so it doesn't glow.
+        const capBright = state.isDay ? '#f4f8fc' : '#bcc8d8';
+        const capSoft   = state.isDay ? '#d8e4ec' : '#8a9aae';
         const bands = [
-          { y: 5,  amp: 0.6, freq: 0.18, speed: 6,  dash: 4, gap: 7  },
-          { y: 12, amp: 0.8, freq: 0.15, speed: 8,  dash: 4, gap: 6  },
-          { y: 20, amp: 1.0, freq: 0.13, speed: 10, dash: 5, gap: 6  },
-          { y: 28, amp: 1.4, freq: 0.11, speed: 12, dash: 6, gap: 5  },
+          // distant: subtle ocean-toned ripple, no white
+          { y: 5,  amp: 0.6, freq: 0.18, speed: 6,  dash: 4, gap: 7,  cap: oceanHi,   foamWidth: 0 },
+          // mid-distant: tiny white tips
+          { y: 12, amp: 0.8, freq: 0.15, speed: 8,  dash: 4, gap: 6,  cap: capSoft,   foamWidth: 0 },
+          // mid: clearer white
+          { y: 20, amp: 1.0, freq: 0.13, speed: 10, dash: 5, gap: 6,  cap: capBright, foamWidth: 0 },
+          // near: chunky foamy crests with a soft foam halo on top
+          { y: 28, amp: 1.4, freq: 0.11, speed: 12, dash: 6, gap: 5,  cap: capBright, foamWidth: 1 },
         ];
         for (const b of bands) {
           const drift = (waveT * b.speed) % (b.dash + b.gap);
           for (let x = -drift; x < vw; x += b.dash + b.gap) {
             const yWobble = Math.sin((x + waveT * b.speed * 0.7) * b.freq) * b.amp;
             const yLine = horizonY + b.y + Math.round(yWobble);
-            if (yLine > horizonY + 1 && yLine < vh - 1) {
-              const startX = Math.max(0, Math.floor(x));
-              const endX = Math.min(vw, Math.floor(x + b.dash));
-              if (endX > startX) {
-                ctx.fillStyle = fogged(oceanHi);
-                ctx.fillRect(vx + startX, vy + yLine, endX - startX, 1);
-                // small shadow under the crest for depth
-                if (endX - startX > 2 && yLine + 1 < vh) {
-                  ctx.fillStyle = fogged(oceanLo);
-                  ctx.fillRect(vx + startX + 1, vy + yLine + 1, endX - startX - 2, 1);
-                }
-              }
+            if (yLine <= horizonY + 1 || yLine >= vh - 1) continue;
+            const startX = Math.max(0, Math.floor(x));
+            const endX = Math.min(vw, Math.floor(x + b.dash));
+            if (endX <= startX) continue;
+            // main crest line
+            ctx.fillStyle = fogged(b.cap);
+            ctx.fillRect(vx + startX, vy + yLine, endX - startX, 1);
+            // soft foam halo above the crest for the chunkiest near-shore wave
+            if (b.foamWidth > 0 && yLine - 1 > horizonY) {
+              ctx.fillStyle = fogged(capSoft);
+              ctx.fillRect(vx + startX + 1, vy + yLine - 1, Math.max(0, endX - startX - 2), 1);
             }
           }
         }
