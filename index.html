@@ -765,6 +765,435 @@
       }
     },
 
+    // Australian outback tin-shack — corrugated iron walls, low-pitch roof, optional water tank.
+    'tin-shack'(ctx, bx, by, h) {
+      if (h.stumps) {
+        const sH = 3;
+        px(ctx, bx + 2, by + h.h, 1, sH, '#3a2618');
+        px(ctx, bx + h.w - 3, by + h.h, 1, sH, '#3a2618');
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fillRect(bx + 1, by + h.h + sH, h.w - 2, 1);
+      }
+      // body — corrugated iron (vertical lines)
+      px(ctx, bx, by, h.w, h.h, h.body);
+      for (let x = bx + 1; x < bx + h.w; x += 2) {
+        px(ctx, x, by + 1, 1, h.h - 2, shade(h.body, -0.18));
+      }
+      // weathered rust streaks (deterministic by h.x)
+      for (let i = 0; i < 3; i++) {
+        const seed = Math.sin(h.x * 7 + i * 13) * 1000;
+        const r = Math.abs(seed - Math.floor(seed));
+        const rx = bx + 2 + Math.floor(r * (h.w - 4));
+        px(ctx, rx, by + 3, 1, h.h - 4, shade(h.body, -0.32));
+      }
+      px(ctx, bx + h.w - 1, by, 1, h.h, shade(h.body, -0.28));
+      px(ctx, bx, by + h.h - 1, h.w, 1, shade(h.body, -0.4));
+
+      // low-pitch corrugated metal roof with overhang
+      const roofH = h.roofH || 3;
+      const overhang = h.overhang || 2;
+      for (let i = 0; i < roofH; i++) {
+        const sw = h.w + overhang * 2 - i * 2;
+        const sx = bx - overhang + i;
+        if (sw > 0) px(ctx, sx, by - i - 1, sw, 1, h.roof);
+      }
+      // corrugation lines along the eave
+      for (let x = bx - overhang; x < bx + h.w + overhang; x += 2) {
+        px(ctx, x, by - 1, 1, 1, shade(h.roof, -0.25));
+      }
+      px(ctx, bx - overhang, by - 1, h.w + overhang * 2, 1, shade(h.roof, -0.35));
+
+      // simple small windows
+      const lit = !state.isDay || state.sunPhase < 0.27 || state.sunPhase > 0.73;
+      for (const w of h.windows || []) {
+        const wx = bx + w.x, wy = by + w.y;
+        px(ctx, wx - 1, wy - 1, w.w + 2, w.h + 2, '#3a2818');
+        px(ctx, wx, wy, w.w, w.h, lit ? '#f0c878' : '#3a4a5e');
+        if (lit) {
+          ctx.fillStyle = 'rgba(240,200,122,0.18)';
+          ctx.fillRect(wx - 2, wy - 2, w.w + 4, w.h + 4);
+        }
+      }
+      if (h.door) {
+        const d = h.door;
+        const dx = bx + d.x, dy = by + d.y;
+        px(ctx, dx, dy, d.w, d.h, d.color || '#3a2818');
+        px(ctx, dx + d.w - 1, dy + (d.h >> 1), 1, 1, '#d4a040');
+      }
+      // optional rainwater tank on stand (iconic outback)
+      if (h.tank) {
+        const tx = bx + h.w + 2;
+        const ty = by + h.h - 7;
+        px(ctx, tx, ty, 4, 6, '#888888');
+        px(ctx, tx, ty, 4, 1, '#a8a8a8');
+        px(ctx, tx, ty + 2, 4, 1, shade('#888888', -0.2));
+        // legs
+        px(ctx, tx, ty + 6, 1, 2, '#3a2618');
+        px(ctx, tx + 3, ty + 6, 1, 2, '#3a2618');
+      }
+    },
+
+    // Australian brick-veneer suburb — single-storey low-pitch brick, attached garage.
+    'brick-veneer'(ctx, bx, by, h) {
+      const houseW = h.garage ? Math.floor(h.w * 0.62) : h.w;
+      const garageW = h.w - houseW;
+      // main house body — brick
+      px(ctx, bx, by, houseW, h.h, h.body);
+      for (let y = by + 2; y < by + h.h - 1; y += 2) {
+        const offset = ((y - by) % 4 === 2) ? 2 : 0;
+        for (let x = bx + offset; x < bx + houseW; x += 4) {
+          px(ctx, x, y, 1, 1, shade(h.body, -0.18));
+        }
+        px(ctx, bx, y - 1, houseW, 1, shade(h.body, -0.1));
+      }
+      px(ctx, bx + houseW - 1, by, 1, h.h, shade(h.body, -0.22));
+      px(ctx, bx, by, 1, h.h, shade(h.body, 0.06));
+      px(ctx, bx, by + h.h - 1, houseW, 1, shade(h.body, -0.3));
+
+      // hipped tile/colorbond roof (low pitch)
+      const roofH = h.roofH || 4;
+      for (let i = 0; i < roofH; i++) {
+        const t = i / Math.max(1, roofH - 1);
+        const sw = Math.max(2, Math.round(houseW + 2 - t * (houseW * 0.45)));
+        const sx = bx - 1 + Math.round((houseW + 2 - sw) / 2);
+        if (sw > 0) px(ctx, sx, by - i - 1, sw, 1, h.roof);
+        if (i > 0 && i % 2 === 1 && sw > 4) {
+          px(ctx, sx + 1, by - i - 1, sw - 2, 1, shade(h.roof, 0.15));
+        }
+      }
+      px(ctx, bx - 1, by - 1, houseW + 2, 1, shade(h.roof, -0.3));
+
+      // attached garage (optional)
+      if (h.garage && garageW > 0) {
+        const gH = Math.floor(h.h * 0.85);
+        const gy = by + h.h - gH;
+        const gx = bx + houseW;
+        px(ctx, gx, gy, garageW, gH, h.body);
+        // brick pattern (lighter to differentiate)
+        for (let y = gy + 2; y < gy + gH - 1; y += 2) {
+          px(ctx, gx, y - 1, garageW, 1, shade(h.body, -0.1));
+        }
+        // garage roof (matches main)
+        for (let i = 0; i < Math.max(2, roofH - 1); i++) {
+          const sw = garageW + 1 - i * 2;
+          const sx = gx + i;
+          if (sw > 0) px(ctx, sx, gy - i - 1, sw, 1, h.roof);
+        }
+        // tilt-a-door
+        px(ctx, gx + 1, gy + 2, garageW - 2, gH - 3, shade(h.body, -0.45));
+        for (let yy = gy + 4; yy < gy + gH - 1; yy += 2) {
+          px(ctx, gx + 1, yy, garageW - 2, 1, shade(h.body, -0.6));
+        }
+      }
+
+      // aluminium-frame sliding windows (the icon of Aussie veneer)
+      const lit = !state.isDay || state.sunPhase < 0.27 || state.sunPhase > 0.73;
+      for (const w of h.windows) {
+        const wx = bx + w.x, wy = by + w.y;
+        px(ctx, wx - 1, wy - 1, w.w + 2, w.h + 2, '#9a9a9a');
+        px(ctx, wx, wy, w.w, w.h, lit ? '#f0c878' : '#3a4a5e');
+        // vertical slider divider
+        if (w.w >= 4) px(ctx, wx + (w.w >> 1), wy, 1, w.h, '#9a9a9a');
+        if (lit) {
+          ctx.fillStyle = 'rgba(240,200,122,0.16)';
+          ctx.fillRect(wx - 2, wy - 2, w.w + 4, w.h + 4);
+        }
+      }
+      if (h.door) {
+        const d = h.door;
+        const dx = bx + d.x, dy = by + d.y;
+        px(ctx, dx, dy, d.w, d.h, d.color || '#5a2418');
+        // small awning above
+        px(ctx, dx - 1, dy - 1, d.w + 2, 1, shade(h.roof, -0.2));
+        px(ctx, dx + d.w - 1, dy + (d.h >> 1), 1, 1, '#d4a040');
+      }
+    },
+
+    // Toraja tongkonan — wooden stilted house with iconic upturned boat-shaped roof.
+    tongkonan(ctx, bx, by, h) {
+      const stiltH = h.stiltH || 5;
+      // stilts
+      px(ctx, bx + 2, by + h.h, 1, stiltH, '#3a2818');
+      px(ctx, bx + h.w - 3, by + h.h, 1, stiltH, '#3a2818');
+      if (h.w >= 14) px(ctx, bx + (h.w >> 1), by + h.h, 1, stiltH, '#3a2818');
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.fillRect(bx + 1, by + h.h + stiltH, h.w - 2, 1);
+
+      // wooden body with vertical plank lines
+      px(ctx, bx, by, h.w, h.h, h.body);
+      for (let x = bx + 2; x < bx + h.w - 1; x += 3) {
+        px(ctx, x, by + 1, 1, h.h - 2, shade(h.body, -0.22));
+      }
+      px(ctx, bx + h.w - 1, by, 1, h.h, shade(h.body, -0.28));
+      px(ctx, bx, by, 1, h.h, shade(h.body, 0.06));
+
+      // iconic red-cream-black carved belt across the middle
+      const beltY = by + Math.floor(h.h * 0.45);
+      px(ctx, bx, beltY,     h.w, 1, '#a83824');
+      px(ctx, bx, beltY + 1, h.w, 1, '#f0e0c0');
+      px(ctx, bx, beltY + 2, h.w, 1, '#1a1008');
+      // pattern dots on the cream stripe
+      for (let dx = 1; dx < h.w; dx += 3) {
+        px(ctx, bx + dx, beltY + 1, 1, 1, '#a83824');
+      }
+
+      // Boat-shaped roof — high horns at both ends, low waist in the middle.
+      const hornH = h.roofH || 13;
+      const centerH = Math.floor(hornH * 0.4);
+      for (let x = 0; x < h.w; x++) {
+        const t = h.w > 1 ? x / (h.w - 1) : 0;
+        const dipFactor = Math.sin(t * Math.PI); // 0 at ends, 1 at middle
+        const roofTop = hornH - Math.round((hornH - centerH) * dipFactor);
+        for (let dy = 0; dy < 2; dy++) {
+          px(ctx, bx + x, by - roofTop + dy, 1, 1, h.roof);
+        }
+        px(ctx, bx + x, by - roofTop, 1, 1, shade(h.roof, 0.18));
+      }
+      // upturned horn tips reaching past the body
+      px(ctx, bx - 1, by - hornH,     1, 2, h.roof);
+      px(ctx, bx + h.w, by - hornH,   1, 2, h.roof);
+      px(ctx, bx - 1, by - hornH - 1, 2, 1, '#1a1008');
+      px(ctx, bx + h.w - 1, by - hornH - 1, 2, 1, '#1a1008');
+
+      // small glowing window(s)
+      const lit = !state.isDay || state.sunPhase < 0.27 || state.sunPhase > 0.73;
+      for (const w of h.windows || []) {
+        const wx = bx + w.x, wy = by + w.y;
+        px(ctx, wx - 1, wy - 1, w.w + 2, w.h + 2, '#3a2418');
+        px(ctx, wx, wy, w.w, w.h, lit ? '#f0c878' : '#3a2418');
+        if (lit) {
+          ctx.fillStyle = 'rgba(240,200,122,0.18)';
+          ctx.fillRect(wx - 2, wy - 2, w.w + 4, w.h + 4);
+        }
+      }
+      // door + ladder
+      if (h.door) {
+        const d = h.door;
+        const dx = bx + d.x, dy = by + d.y;
+        px(ctx, dx, dy, d.w, d.h, '#1a1008');
+        for (let i = 0; i < stiltH; i += 2) {
+          px(ctx, dx, by + h.h + i, d.w, 1, '#5a3a22');
+        }
+      }
+    },
+
+    // Cape Dutch — white stucco with iconic S-curve scrolled gable (Stellenbosch, Cape Town wine region).
+    'cape-dutch'(ctx, bx, by, h) {
+      // body — white stucco
+      px(ctx, bx, by, h.w, h.h, h.body);
+      px(ctx, bx + h.w - 1, by, 1, h.h, shade(h.body, -0.18));
+      px(ctx, bx, by, 1, h.h, shade(h.body, 0.08));
+      px(ctx, bx, by + h.h - 1, h.w, 1, shade(h.body, -0.22));
+
+      // S-curve Dutch gable on top — scrolled outline rising to a peak
+      const gableH = h.gableH || 10;
+      for (let i = 0; i < gableH; i++) {
+        const t = gableH > 1 ? i / (gableH - 1) : 0;
+        // piecewise S-shape: narrow at base, swelling out for the scrolls, then tapering to peak
+        let f;
+        if (t < 0.25)      f = 1.0 - t * 1.4;            // 1.0 → 0.65
+        else if (t < 0.45) f = 0.65 + (t - 0.25) * 1.5;  // 0.65 → 0.95 (scroll shoulder)
+        else if (t < 0.65) f = 0.95 - (t - 0.45) * 1.6;  // 0.95 → 0.63
+        else               f = Math.max(0.05, 0.63 - (t - 0.65) * 1.8); // taper to peak
+        const sw = Math.max(1, Math.round(h.w * f));
+        const sx = bx + Math.round((h.w - sw) / 2);
+        px(ctx, sx, by - i - 1, sw, 1, h.body);
+        px(ctx, sx, by - i - 1, 1, 1, shade(h.body, -0.25));
+        px(ctx, sx + sw - 1, by - i - 1, 1, 1, shade(h.body, -0.25));
+      }
+      // peak finial
+      const finX = bx + (h.w >> 1);
+      px(ctx, finX, by - gableH - 1, 1, 1, '#3a2818');
+
+      // dark thatched/tile roof peeking from behind
+      const innerRoofW = Math.max(2, Math.floor(h.w * 0.6));
+      const innerRoofX = bx + Math.floor((h.w - innerRoofW) / 2);
+      const innerRoofH = h.roofH || 3;
+      for (let i = 0; i < innerRoofH; i++) {
+        const sw = Math.max(1, innerRoofW - i * 2);
+        const sx = innerRoofX + i;
+        px(ctx, sx, by - innerRoofH + i, sw, 1, h.roof || '#5a3a28');
+      }
+
+      // green-shuttered windows (Cape Dutch typical)
+      const lit = !state.isDay || state.sunPhase < 0.27 || state.sunPhase > 0.73;
+      const shutterColor = h.shutterColor || '#3a5a3a';
+      const shutterShade = shade(shutterColor, -0.3);
+      for (const w of h.windows) {
+        const wx = bx + w.x, wy = by + w.y;
+        px(ctx, wx - 1, wy - 1, w.w + 2, w.h + 2, '#3a2418');
+        px(ctx, wx, wy, w.w, w.h, lit ? '#f0c878' : '#3a4a5e');
+        if (w.w >= 3) px(ctx, wx + (w.w >> 1), wy, 1, w.h, '#5a4a3a');
+        // shutters
+        px(ctx, wx - 2, wy - 1, 1, w.h + 2, shutterColor);
+        px(ctx, wx + w.w + 1, wy - 1, 1, w.h + 2, shutterColor);
+        for (let yy = wy; yy < wy + w.h + 2; yy += 2) {
+          px(ctx, wx - 2, yy, 1, 1, shutterShade);
+          px(ctx, wx + w.w + 1, yy, 1, 1, shutterShade);
+        }
+        if (lit) {
+          ctx.fillStyle = 'rgba(240,200,122,0.18)';
+          ctx.fillRect(wx - 3, wy - 2, w.w + 6, w.h + 4);
+        }
+      }
+
+      // grand front door with fanlight
+      if (h.door) {
+        const d = h.door;
+        const dx = bx + d.x, dy = by + d.y;
+        px(ctx, dx - 1, dy - 2, d.w + 2, 1, '#5a4a3a');     // small lintel
+        px(ctx, dx, dy - 1, d.w, 1, '#f0e0c0');             // fanlight
+        px(ctx, dx, dy, d.w, d.h, d.color || '#3a2418');
+        px(ctx, dx + (d.w >> 1), dy, 1, d.h, '#1a1008');
+        px(ctx, dx + d.w - 2, dy + (d.h >> 1), 1, 1, '#d4a040');
+      }
+    },
+
+    // Russian izba — log-walled cabin with carved trim ('nalichniki') framing the windows.
+    izba(ctx, bx, by, h) {
+      // log body
+      px(ctx, bx, by, h.w, h.h, h.body);
+      for (let y = by + 1; y < by + h.h - 1; y += 2) {
+        px(ctx, bx, y, h.w, 1, shade(h.body, -0.2));
+      }
+      px(ctx, bx + h.w - 1, by, 1, h.h, shade(h.body, -0.28));
+      px(ctx, bx, by, 1, h.h, shade(h.body, 0.08));
+      // log-end pegs at corners
+      for (let y = by + 2; y < by + h.h - 1; y += 3) {
+        px(ctx, bx, y, 1, 1, shade(h.body, -0.4));
+        px(ctx, bx + h.w - 1, y, 1, 1, shade(h.body, -0.4));
+      }
+      // base shadow
+      px(ctx, bx, by + h.h - 1, h.w, 1, shade(h.body, -0.35));
+
+      // chimney behind roof
+      if (h.chimney) {
+        const cx = bx + h.chimney.x;
+        const cy = by + h.chimney.y;
+        px(ctx, cx, cy, h.chimney.w, h.chimney.h, '#3a2418');
+        px(ctx, cx, cy, h.chimney.w, 1, '#5a4030');
+      }
+
+      // steep gable roof
+      const roofH = h.roofH || 8;
+      for (let i = 0; i < roofH; i++) {
+        const t = roofH > 1 ? i / (roofH - 1) : 0;
+        const sw = Math.max(1, Math.round(h.w - t * (h.w - 1)));
+        const sx = bx + Math.round((h.w - sw) / 2);
+        px(ctx, sx, by - i - 1, sw, 1, h.roof);
+        if (i > 0 && i % 2 === 0 && sw > 4) {
+          px(ctx, sx + 1, by - i - 1, sw - 2, 1, shade(h.roof, 0.1));
+        }
+      }
+      px(ctx, bx - 1, by - 1, h.w + 2, 1, shade(h.roof, -0.3));
+
+      // carved trim band along the eave — alternating notch pattern
+      const trimColor = h.trimColor || '#f0e8d4';
+      for (let x = bx; x < bx + h.w; x++) {
+        if (x % 2 === 0) px(ctx, x, by, 1, 1, trimColor);
+      }
+      // ornamental icicle below the eave
+      const peakX = bx + (h.w >> 1);
+      const peakY = by - roofH;
+      px(ctx, peakX - 2, peakY + 1, 5, 1, trimColor);
+      px(ctx, peakX, peakY, 1, 1, trimColor);
+
+      // windows with bold painted nalichniki frames
+      const lit = !state.isDay || state.sunPhase < 0.27 || state.sunPhase > 0.73;
+      const frameColor = h.frameColor || '#3a5e8a';
+      for (const w of h.windows) {
+        const wx = bx + w.x, wy = by + w.y;
+        // painted frame
+        px(ctx, wx - 2, wy - 1, w.w + 4, w.h + 2, frameColor);
+        // small pediment above
+        px(ctx, wx - 1, wy - 2, w.w + 2, 1, frameColor);
+        px(ctx, wx + (w.w >> 1), wy - 3, 1, 1, frameColor);
+        // glass
+        px(ctx, wx, wy, w.w, w.h, lit ? '#f8d878' : '#3a4a5e');
+        // cross mullion
+        px(ctx, wx + (w.w >> 1), wy, 1, w.h, shade(frameColor, 0.3));
+        if (w.h >= 4) px(ctx, wx, wy + (w.h >> 1), w.w, 1, shade(frameColor, 0.3));
+        if (lit) {
+          ctx.fillStyle = 'rgba(248,216,122,0.18)';
+          ctx.fillRect(wx - 3, wy - 4, w.w + 6, w.h + 6);
+        }
+      }
+
+      // door (often framed with painted lintel)
+      if (h.door) {
+        const d = h.door;
+        const dx = bx + d.x, dy = by + d.y;
+        px(ctx, dx - 1, dy - 1, d.w + 2, 1, frameColor);
+        px(ctx, dx, dy, d.w, d.h, d.color || '#5a3a22');
+        px(ctx, dx + (d.w >> 1), dy, 1, d.h, '#2a1810');
+      }
+      // smoke if cold
+      if (h.chimney && state.temperatureC < 5) {
+        drawSmoke(ctx, bx + h.chimney.x + (h.chimney.w >> 1), by + h.chimney.y, state.time + h.x);
+      }
+    },
+
+    // Mongolian ger — circular felt yurt with conical roof, red door, vent ring on top.
+    ger(ctx, bx, by, h) {
+      const cx = bx + (h.w >> 1);
+      const r = h.w / 2;
+      // felt body — slightly bulging cylinder silhouette
+      for (let y = 0; y < h.h; y++) {
+        const yT = y / Math.max(1, h.h - 1);
+        const halfW = Math.max(1, Math.round(r * (1 - Math.abs(yT - 0.5) * 0.1)));
+        const xL = cx - halfW;
+        const w = halfW * 2 + 1;
+        px(ctx, xL, by + y, w, 1, h.body);
+        px(ctx, xL + w - 1, by + y, 1, 1, shade(h.body, -0.18));
+        px(ctx, xL, by + y, 1, 1, shade(h.body, 0.08));
+      }
+      // decorative band around the upper third (typical felt rope wrap)
+      const bandY = by + Math.floor(h.h * 0.55);
+      const bandColor = h.bandColor || '#a83824';
+      for (let dx = -r + 1; dx <= r - 1; dx++) {
+        if (Math.floor(Math.abs(dx)) % 3 === 0) {
+          px(ctx, cx + dx, bandY, 1, 1, bandColor);
+        }
+      }
+      // base anchor strip
+      px(ctx, bx - 1, by + h.h - 1, h.w + 2, 1, shade(h.body, -0.35));
+
+      // conical roof (sloped up to a point)
+      const roofH = h.roofH || 5;
+      for (let i = 0; i < roofH; i++) {
+        const t = i / Math.max(1, roofH - 1);
+        const sw = Math.max(3, Math.round(h.w + 2 - t * h.w));
+        const sx = cx - Math.floor(sw / 2);
+        px(ctx, sx, by - i - 1, sw, 1, h.roof);
+        // radial roof pole hints — small dark dashes
+        if (sw > 6 && i === Math.floor(roofH * 0.5)) {
+          for (let dx = 1; dx < sw - 1; dx += 3) {
+            px(ctx, sx + dx, by - i - 1, 1, 1, shade(h.roof, -0.3));
+          }
+        }
+      }
+      // top vent ring (toono) — small dark hole
+      px(ctx, cx - 1, by - roofH, 2, 1, '#1a140a');
+      // dark eave at the wall-roof junction
+      px(ctx, bx - 1, by - 1, h.w + 2, 1, shade(h.roof, -0.3));
+
+      // red painted door (always — gers face south so the door faces us here)
+      const dW = Math.max(3, Math.floor(h.w * 0.3));
+      const dH = Math.max(3, Math.floor(h.h * 0.6));
+      const dx = cx - (dW >> 1);
+      const dy = by + h.h - dH;
+      px(ctx, dx - 1, dy - 1, dW + 2, 1, '#5a1a14');
+      px(ctx, dx, dy, dW, dH, '#a83824');
+      px(ctx, dx, dy, dW, 1, '#c84a3a');
+      // door panel divider
+      px(ctx, dx + (dW >> 1), dy, 1, dH, '#5a1a14');
+
+      // smoke from the toono if cold
+      if (state.temperatureC < 8) {
+        drawSmoke(ctx, cx, by - roofH - 1, state.time + h.x);
+      }
+    },
+
     // Inner-city terrace row — Victorian-era attached 2-3 storey terraces with iron lacework
     'terrace-row'(ctx, bx, by, h) {
       // body (each "house" is one unit, attached to neighbors)
@@ -2338,6 +2767,229 @@
       ],
     },
 
+    // Australian outback — red dirt, sparse corrugated iron shacks, big sky
+    'aussie-outback': {
+      name: 'Australian outback',
+      palette: {
+        hillFar: '#b8826a', hillFarDark: '#5a3a28', nightFar: '#2a1a14',
+        hillMid: '#a8624a', hillMidDark: '#4a2820', nightMid: '#22120e',
+        hillNear: '#a05038', hillNearDark: '#3a1812', nightNear: '#180a08',
+      },
+      houses: [
+        { style: 'tin-shack', x: 6,   y: 92, w: 16, h: 12, roofH: 2, body: '#c8a060', roof: '#8a8a8a', stumps: true, windows: [{x:3,y:4,w:4,h:4},{x:9,y:4,w:4,h:4}], door: {x:6,y:7,w:4,h:5}, tank: true },
+        { style: 'tin-shack', x: 38,  y: 96, w: 14, h: 8, roofH: 2, body: '#a8884a', roof: '#7a7a7a', windows: [{x:3,y:2,w:3,h:3},{x:8,y:2,w:3,h:3}] },
+        { style: 'tin-shack', x: 64,  y: 90, w: 22, h: 14, roofH: 3, body: '#d4a060', roof: '#8a8a8a', stumps: true, door: {x:9,y:8,w:4,h:6}, windows: [{x:3,y:3,w:4,h:5},{x:14,y:3,w:4,h:5}], tank: true },
+        { style: 'tin-shack', x: 100, y: 94, w: 18, h: 10, roofH: 2, body: '#c8a060', roof: '#7a7a7a', windows: [{x:3,y:3,w:4,h:4},{x:11,y:3,w:4,h:4}] },
+        { style: 'tin-shack', x: 128, y: 88, w: 24, h: 16, roofH: 4, body: '#b8884a', roof: '#888888', stumps: true, door: {x:10,y:10,w:4,h:6}, windows: [{x:3,y:3,w:4,h:5},{x:16,y:3,w:4,h:5}] },
+        { style: 'tin-shack', x: 162, y: 94, w: 16, h: 10, roofH: 2, body: '#d4a060', roof: '#7a7a7a', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        { style: 'tin-shack', x: 182, y: 96, w: 12, h: 8, roofH: 2, body: '#a8884a', roof: '#8a8a8a', windows: [{x:2,y:2,w:3,h:3},{x:7,y:2,w:3,h:3}] },
+      ],
+      trees: [
+        { style: 'gum', x: 30,  y: 104, h: 14, w: 7, sway: 0.5 },
+        { style: 'gum', x: 92,  y: 102, h: 18, w: 8, sway: 0.55 },
+        { style: 'gum', x: 156, y: 104, h: 12, w: 6, sway: 0.5 },
+      ],
+    },
+
+    // Tropical Far North Queensland — high Queenslander stilts, lush palms, deep tropical green
+    'aussie-tropical': {
+      name: 'Tropical Far North',
+      palette: {
+        hillFar: '#6aa090', hillFarDark: '#2a4a40', nightFar: '#142a24',
+        hillMid: '#3a8a4a', hillMidDark: '#1a3a22', nightMid: '#0e1c14',
+        hillNear: '#2a6a3a', hillNearDark: '#0e2818', nightNear: '#06180a',
+      },
+      houses: [
+        { style: 'weatherboard', x: 4,   y: 78, w: 22, h: 18, roofH: 3, body: '#f0e0c4', roof: '#7c7c7c', stumps: true, veranda: true, door: {x:9,y:9,w:4,h:9}, windows: [{x:3,y:3,w:5,h:5},{x:14,y:3,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 30,  y: 82, w: 18, h: 14, roofH: 3, body: '#d4e0e0', roof: '#9c9c9c', stumps: true, veranda: true, windows: [{x:3,y:3,w:4,h:5},{x:11,y:3,w:4,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 52,  y: 76, w: 26, h: 20, roofH: 4, body: '#e8d4b0', roof: '#7c7c7c', stumps: true, veranda: true, door: {x:11,y:10,w:4,h:10}, windows: [{x:3,y:3,w:5,h:5},{x:18,y:3,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 82,  y: 82, w: 18, h: 14, roofH: 3, body: '#f0d8b0', roof: '#9c9c9c', stumps: true, windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 104, y: 74, w: 30, h: 22, roofH: 4, body: '#f0e0c4', roof: '#7c7c7c', stumps: true, veranda: true, door: {x:13,y:12,w:5,h:10}, windows: [{x:4,y:4,w:5,h:5},{x:21,y:4,w:5,h:5}], overhang: 4 },
+        { style: 'weatherboard', x: 138, y: 80, w: 22, h: 16, roofH: 3, body: '#d4e0c8', roof: '#9c9c9c', stumps: true, veranda: true, windows: [{x:3,y:4,w:5,h:5},{x:14,y:4,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 164, y: 78, w: 28, h: 18, roofH: 4, body: '#e8d4b0', roof: '#888888', stumps: true, veranda: true, door: {x:12,y:10,w:5,h:8}, windows: [{x:3,y:4,w:5,h:5},{x:20,y:4,w:5,h:5}], overhang: 4 },
+      ],
+      trees: [
+        { style: 'palm', x: 22,  y: 104, h: 24, w: 9, sway: 0.85 },
+        { style: 'palm', x: 80,  y: 102, h: 28, w: 10, sway: 0.9 },
+        { style: 'palm', x: 156, y: 104, h: 22, w: 9, sway: 0.85 },
+        { style: 'palm', x: 188, y: 104, h: 20, w: 8, sway: 0.8 },
+      ],
+    },
+
+    // Snowy Mountains / Tasmanian highlands — wooden alpine cabins among snow gums
+    'aussie-alpine': {
+      name: 'Aussie alpine',
+      palette: {
+        hillFar: '#a8b4c0', hillFarDark: '#48505c', nightFar: '#2a3240',
+        hillMid: '#7a8a72', hillMidDark: '#3a4232', nightMid: '#1a201a',
+        hillNear: '#c8d4dc', hillNearDark: '#788490', nightNear: '#384458',
+      },
+      houses: [
+        { style: 'cabin', x: 6,   y: 86, w: 18, h: 18, roofH: 8, body: '#6a4a30', roof: '#3a201a', noSnow: true, windows: [{x:3,y:6,w:4,h:5},{x:11,y:6,w:4,h:5}], chimney: {x:13,y:-3,w:3,h:5} },
+        { style: 'cabin', x: 28,  y: 92, w: 14, h: 12, roofH: 5, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:4,w:3,h:4},{x:8,y:4,w:3,h:4}] },
+        { style: 'cabin', x: 46,  y: 84, w: 22, h: 20, roofH: 9, body: '#6a4a30', roof: '#3a201a', noSnow: true, door: {x:9,y:12,w:4,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:4,h:5},{x:14,y:5,w:4,h:5}], chimney: {x:14,y:-4,w:3,h:6} },
+        { style: 'cabin', x: 72,  y: 90, w: 18, h: 14, roofH: 6, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:5,w:4,h:4},{x:11,y:5,w:4,h:4}] },
+        { style: 'cabin', x: 94,  y: 80, w: 26, h: 24, roofH: 10, body: '#6a4a30', roof: '#3a201a', noSnow: true, door: {x:11,y:14,w:5,h:10,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:6},{x:17,y:5,w:5,h:6}], chimney: {x:17,y:-5,w:3,h:7} },
+        { style: 'cabin', x: 124, y: 86, w: 22, h: 18, roofH: 8, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:5,w:5,h:5},{x:14,y:5,w:5,h:5}] },
+        { style: 'cabin', x: 150, y: 76, w: 30, h: 28, roofH: 12, body: '#6a4a30', roof: '#3a201a', noSnow: true, door: {x:13,y:18,w:5,h:10,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:6},{x:21,y:5,w:5,h:6}], chimney: {x:22,y:-6,w:4,h:8} },
+        { style: 'cabin', x: 184, y: 90, w: 12, h: 14, roofH: 6, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:2,y:4,w:3,h:5},{x:7,y:4,w:3,h:5}] },
+      ],
+      trees: [
+        { style: 'gum', x: 24,  y: 104, h: 18, w: 8, sway: 0.6 },
+        { style: 'gum', x: 88,  y: 102, h: 22, w: 9, sway: 0.65 },
+        { style: 'gum', x: 168, y: 104, h: 16, w: 7, sway: 0.6 },
+        { style: 'gum', x: 192, y: 104, h: 14, w: 6, sway: 0.55 },
+      ],
+    },
+
+    // Australian wine country — rolling green hills with vineyards, cellar door homestead
+    'aussie-wine-country': {
+      name: 'Aussie wine country',
+      palette: {
+        hillFar: '#8aa090', hillFarDark: '#3a4a40', nightFar: '#1c2820',
+        hillMid: '#7a9858', hillMidDark: '#3a4828', nightMid: '#1a2218',
+        hillNear: '#5a7a3a', hillNearDark: '#2a3a18', nightNear: '#10180e',
+      },
+      houses: [
+        { style: 'weatherboard', x: 6,   y: 90, w: 22, h: 14, roofH: 3, body: '#e8d8b8', roof: '#888888', veranda: true, windows: [{x:4,y:4,w:5,h:5},{x:13,y:4,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 32,  y: 93, w: 16, h: 11, roofH: 3, body: '#d4c0a0', roof: '#7c7c7c', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        // larger main homestead / cellar door
+        { style: 'weatherboard', x: 54,  y: 80, w: 32, h: 24, roofH: 4, body: '#f0e0c4', roof: '#7c7c7c', stumps: true, veranda: true, door: {x:14,y:14,w:5,h:10}, windows: [{x:4,y:5,w:5,h:6},{x:23,y:5,w:5,h:6}], overhang: 4 },
+        { style: 'weatherboard', x: 92,  y: 92, w: 18, h: 12, roofH: 3, body: '#e8d8b8', roof: '#888888', windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        // small chapel-ish building
+        { style: 'whitewash', x: 116, y: 84, w: 18, h: 20, roofH: 5, body: '#f0e8d4', roof: '#9c4628', shutterColor: '#3a4878', door: {x:7,y:13,w:4,h:7}, windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 140, y: 90, w: 22, h: 14, roofH: 3, body: '#d4c0a0', roof: '#888888', windows: [{x:3,y:4,w:5,h:5},{x:14,y:4,w:5,h:5}] },
+        { style: 'weatherboard', x: 166, y: 88, w: 28, h: 16, roofH: 4, body: '#f0e0c4', roof: '#7c7c7c', stumps: true, veranda: true, windows: [{x:4,y:4,w:5,h:5},{x:19,y:4,w:5,h:5}], overhang: 3 },
+      ],
+      trees: [
+        // cypresses on the property edges + olives for the orchard feel
+        { style: 'cypress', x: 30,  y: 104, h: 14, w: 4, sway: 0.5 },
+        { style: 'olive',   x: 96,  y: 103, h: 11, w: 9, sway: 0.55 },
+        { style: 'cypress', x: 130, y: 104, h: 16, w: 4, sway: 0.5 },
+        { style: 'cypress', x: 158, y: 104, h: 12, w: 4, sway: 0.5 },
+      ],
+    },
+
+    // Australian brick-veneer suburb — single-storey 70s/80s brick with hip roof and tilt-a-door
+    'aussie-suburb': {
+      name: 'Aussie brick-veneer suburb',
+      palette: {
+        hillFar: '#7a8a72', hillFarDark: '#3a4232', nightFar: '#1a2018',
+        hillMid: '#5a8a4a', hillMidDark: '#284228', nightMid: '#10221a',
+        hillNear: '#5aa05a', hillNearDark: '#1e3820', nightNear: '#0e1810',
+      },
+      houses: [
+        { style: 'brick-veneer', x: 4,   y: 88, w: 26, h: 14, roofH: 4, body: '#a87858', roof: '#5a3a25', garage: true, windows: [{x:3,y:4,w:4,h:5},{x:10,y:4,w:4,h:5}], door: {x:16,y:8,w:4,h:6} },
+        { style: 'brick-veneer', x: 34,  y: 90, w: 28, h: 12, roofH: 3, body: '#8a6a48', roof: '#7a3a22', garage: true, windows: [{x:3,y:3,w:4,h:5},{x:10,y:3,w:4,h:5}], door: {x:16,y:6,w:4,h:6} },
+        { style: 'brick-veneer', x: 66,  y: 86, w: 30, h: 16, roofH: 4, body: '#a88858', roof: '#5a3a25', garage: true, windows: [{x:3,y:4,w:5,h:6},{x:11,y:4,w:5,h:6}], door: {x:18,y:9,w:4,h:7} },
+        { style: 'brick-veneer', x: 100, y: 90, w: 26, h: 12, roofH: 3, body: '#947048', roof: '#7a3a22', garage: true, windows: [{x:3,y:3,w:4,h:5},{x:10,y:3,w:4,h:5}], door: {x:16,y:6,w:4,h:6} },
+        { style: 'brick-veneer', x: 130, y: 84, w: 32, h: 18, roofH: 5, body: '#a87858', roof: '#5a3a25', garage: true, windows: [{x:3,y:5,w:5,h:6},{x:11,y:5,w:5,h:6}], door: {x:18,y:11,w:4,h:7} },
+        { style: 'brick-veneer', x: 166, y: 88, w: 28, h: 14, roofH: 4, body: '#8a6a48', roof: '#7a3a22', garage: true, windows: [{x:3,y:4,w:5,h:5},{x:11,y:4,w:5,h:5}], door: {x:18,y:8,w:4,h:6} },
+      ],
+      trees: [
+        { style: 'gum', x: 30,  y: 102, h: 14, w: 7, sway: 0.55 },
+        { style: 'gum', x: 96,  y: 100, h: 16, w: 8, sway: 0.6 },
+        { style: 'gum', x: 188, y: 102, h: 12, w: 6, sway: 0.55 },
+      ],
+    },
+
+    // Toraja tongkonan — wooden stilted houses with iconic boat-shaped roofs (Sulawesi)
+    'toraja-tongkonan': {
+      name: 'Toraja tongkonan',
+      palette: {
+        hillFar: '#5a8a6a', hillFarDark: '#2a4232', nightFar: '#142018',
+        hillMid: '#3a7a4a', hillMidDark: '#1a3a22', nightMid: '#0e1a14',
+        hillNear: '#2a5a3a', hillNearDark: '#0e2418', nightNear: '#06120a',
+      },
+      houses: [
+        { style: 'tongkonan', x: 4,   y: 76, w: 22, h: 12, roofH: 12, stiltH: 5, body: '#7a5638', roof: '#3a2014', door: {x:9,y:10,w:4,h:2}, windows: [{x:4,y:4,w:3,h:3},{x:15,y:4,w:3,h:3}] },
+        { style: 'tongkonan', x: 32,  y: 80, w: 20, h: 10, roofH: 11, stiltH: 4, body: '#8a6448', roof: '#3a2014', windows: [{x:3,y:3,w:3,h:3},{x:14,y:3,w:3,h:3}] },
+        { style: 'tongkonan', x: 58,  y: 72, w: 26, h: 14, roofH: 14, stiltH: 6, body: '#7a5638', roof: '#3a2014', door: {x:11,y:12,w:4,h:2}, windows: [{x:4,y:4,w:3,h:4},{x:19,y:4,w:3,h:4}] },
+        { style: 'tongkonan', x: 90,  y: 78, w: 22, h: 12, roofH: 12, stiltH: 5, body: '#8a6448', roof: '#3a2014', windows: [{x:4,y:4,w:3,h:3},{x:15,y:4,w:3,h:3}] },
+        { style: 'tongkonan', x: 118, y: 70, w: 28, h: 16, roofH: 16, stiltH: 7, body: '#7a5638', roof: '#3a2014', door: {x:12,y:14,w:4,h:2}, windows: [{x:4,y:5,w:4,h:4},{x:20,y:5,w:4,h:4}] },
+        { style: 'tongkonan', x: 152, y: 76, w: 22, h: 12, roofH: 12, stiltH: 5, body: '#8a6448', roof: '#3a2014', door: {x:9,y:10,w:4,h:2}, windows: [{x:4,y:4,w:3,h:3},{x:15,y:4,w:3,h:3}] },
+        { style: 'tongkonan', x: 178, y: 80, w: 18, h: 10, roofH: 11, stiltH: 4, body: '#7a5638', roof: '#3a2014', windows: [{x:3,y:3,w:3,h:3},{x:12,y:3,w:3,h:3}] },
+      ],
+      trees: [
+        { style: 'palm',   x: 26,  y: 104, h: 18, w: 7, sway: 0.7 },
+        { style: 'bamboo', x: 84,  y: 102, h: 20, w: 7, sway: 0.85 },
+        { style: 'palm',   x: 142, y: 104, h: 16, w: 7, sway: 0.7 },
+        { style: 'palm',   x: 190, y: 104, h: 14, w: 6, sway: 0.65 },
+      ],
+    },
+
+    // Cape Dutch — white stucco with scrolled gables, Stellenbosch/Cape wine region
+    'cape-dutch': {
+      name: 'Cape Dutch',
+      palette: {
+        hillFar: '#8aa298', hillFarDark: '#3a4a42', nightFar: '#1c2620',
+        hillMid: '#7a8a5e', hillMidDark: '#3a4222', nightMid: '#1a2010',
+        hillNear: '#8a8a4a', hillNearDark: '#3a3a18', nightNear: '#181810',
+      },
+      houses: [
+        { style: 'cape-dutch', x: 4,   y: 86, w: 22, h: 18, gableH: 8,  roofH: 3, body: '#f0e8d4', roof: '#5a3a25', shutterColor: '#3a5a3a', windows: [{x:4,y:6,w:4,h:5},{x:13,y:6,w:4,h:5}] },
+        { style: 'cape-dutch', x: 30,  y: 88, w: 18, h: 16, gableH: 6,  roofH: 3, body: '#e8e0c8', roof: '#5a3a25', shutterColor: '#3a4878', windows: [{x:3,y:5,w:4,h:5},{x:11,y:5,w:4,h:5}] },
+        { style: 'cape-dutch', x: 52,  y: 80, w: 28, h: 24, gableH: 10, roofH: 4, body: '#f0e8d4', roof: '#5a3a25', shutterColor: '#3a5a3a', door: {x:12,y:16,w:4,h:8,color:'#3a2418'}, windows: [{x:4,y:5,w:5,h:6},{x:19,y:5,w:5,h:6}] },
+        { style: 'cape-dutch', x: 84,  y: 88, w: 18, h: 16, gableH: 6,  roofH: 3, body: '#e8e0c8', roof: '#5a3a25', shutterColor: '#3a5a3a', windows: [{x:3,y:5,w:4,h:5},{x:11,y:5,w:4,h:5}] },
+        { style: 'cape-dutch', x: 106, y: 82, w: 26, h: 22, gableH: 9,  roofH: 4, body: '#f0e8d4', roof: '#5a3a25', shutterColor: '#3a4878', door: {x:11,y:14,w:4,h:8,color:'#3a2418'}, windows: [{x:4,y:5,w:5,h:5},{x:17,y:5,w:5,h:5}] },
+        { style: 'cape-dutch', x: 136, y: 86, w: 22, h: 18, gableH: 7,  roofH: 3, body: '#e8e0c8', roof: '#5a3a25', shutterColor: '#3a5a3a', windows: [{x:4,y:5,w:5,h:5},{x:13,y:5,w:5,h:5}] },
+        { style: 'cape-dutch', x: 162, y: 78, w: 30, h: 26, gableH: 11, roofH: 5, body: '#f0e8d4', roof: '#5a3a25', shutterColor: '#3a5a3a', door: {x:13,y:18,w:5,h:8,color:'#3a2418'}, windows: [{x:4,y:6,w:5,h:6},{x:21,y:6,w:5,h:6}] },
+      ],
+      trees: [
+        { style: 'cypress', x: 28,  y: 104, h: 18, w: 5, sway: 0.5 },
+        { style: 'olive',   x: 80,  y: 103, h: 10, w: 8, sway: 0.55 },
+        { style: 'cypress', x: 130, y: 104, h: 20, w: 5, sway: 0.5 },
+        { style: 'cypress', x: 158, y: 104, h: 16, w: 4, sway: 0.5 },
+      ],
+    },
+
+    // Russian izba — wooden log houses with bright nalichniki window trim
+    'russian-izba': {
+      name: 'Russian izba',
+      palette: {
+        hillFar: '#a8b4c0', hillFarDark: '#56607a', nightFar: '#2c344a',
+        hillMid: '#6a8a7a', hillMidDark: '#2e3e34', nightMid: '#181f1a',
+        hillNear: '#5a7a5a', hillNearDark: '#2a3a2a', nightNear: '#10180e',
+      },
+      houses: [
+        { style: 'izba', x: 4,   y: 88, w: 18, h: 16, roofH: 7, body: '#7a5638', roof: '#3a2014', trimColor: '#f0e8d4', frameColor: '#3a5e8a', windows: [{x:3,y:6,w:4,h:5},{x:11,y:6,w:4,h:5}], chimney: {x:14,y:-3,w:3,h:5} },
+        { style: 'izba', x: 26,  y: 92, w: 14, h: 12, roofH: 5, body: '#8a6448', roof: '#3a2014', trimColor: '#a83824', frameColor: '#a83824', windows: [{x:3,y:4,w:3,h:4},{x:8,y:4,w:3,h:4}] },
+        { style: 'izba', x: 44,  y: 84, w: 22, h: 20, roofH: 9, body: '#7a5638', roof: '#3a2014', trimColor: '#f0e8d4', frameColor: '#3a5e8a', windows: [{x:4,y:6,w:5,h:6},{x:13,y:6,w:5,h:6}], chimney: {x:15,y:-4,w:3,h:6} },
+        { style: 'izba', x: 68,  y: 90, w: 16, h: 14, roofH: 6, body: '#8a6448', roof: '#3a2014', trimColor: '#a83824', frameColor: '#3a8a3a', windows: [{x:3,y:5,w:4,h:4},{x:10,y:5,w:4,h:4}] },
+        { style: 'izba', x: 86,  y: 80, w: 26, h: 24, roofH: 10, body: '#7a5638', roof: '#3a2014', trimColor: '#f0e8d4', frameColor: '#3a5e8a', door: {x:11,y:16,w:4,h:8,color:'#3a2418'}, windows: [{x:3,y:5,w:5,h:6},{x:18,y:5,w:5,h:6}], chimney: {x:18,y:-5,w:3,h:7} },
+        { style: 'izba', x: 116, y: 86, w: 20, h: 18, roofH: 8, body: '#8a6448', roof: '#3a2014', trimColor: '#a83824', frameColor: '#a83824', windows: [{x:3,y:5,w:4,h:5},{x:13,y:5,w:4,h:5}] },
+        { style: 'izba', x: 140, y: 76, w: 30, h: 28, roofH: 11, body: '#7a5638', roof: '#3a2014', trimColor: '#f0e8d4', frameColor: '#3a5e8a', door: {x:13,y:18,w:5,h:10,color:'#3a2418'}, windows: [{x:4,y:5,w:5,h:6},{x:21,y:5,w:5,h:6}], chimney: {x:22,y:-6,w:4,h:9} },
+        { style: 'izba', x: 174, y: 88, w: 20, h: 16, roofH: 7, body: '#8a6448', roof: '#3a2014', trimColor: '#a83824', frameColor: '#3a8a3a', windows: [{x:3,y:5,w:4,h:5},{x:12,y:5,w:4,h:5}], chimney: {x:14,y:-3,w:3,h:5} },
+      ],
+      trees: [
+        { style: 'spruce', x: 20,  y: 104, h: 18, w: 7, sway: 0.5, alwaysSnow: false },
+        { style: 'spruce', x: 80,  y: 102, h: 22, w: 8, sway: 0.55, alwaysSnow: false },
+        { style: 'spruce', x: 188, y: 104, h: 16, w: 6, sway: 0.5, alwaysSnow: false },
+      ],
+    },
+
+    // Mongolian ger camp — circular felt yurts dotting the open steppe
+    'mongolian-ger': {
+      name: 'Mongolian ger camp',
+      palette: {
+        hillFar: '#a8a890', hillFarDark: '#4a4636', nightFar: '#2a2618',
+        hillMid: '#8a8068', hillMidDark: '#3a3424', nightMid: '#18140e',
+        hillNear: '#7a7058', hillNearDark: '#2a241a', nightNear: '#141008',
+      },
+      houses: [
+        { style: 'ger', x: 8,   y: 94, w: 14, h: 8,  roofH: 5, body: '#e8e0d0', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 32,  y: 92, w: 16, h: 9,  roofH: 6, body: '#e0d8c8', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 56,  y: 95, w: 12, h: 7,  roofH: 4, body: '#e8e0d0', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 74,  y: 90, w: 18, h: 10, roofH: 7, body: '#e8e0d0', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 98,  y: 92, w: 16, h: 9,  roofH: 6, body: '#e0d8c8', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 120, y: 95, w: 12, h: 7,  roofH: 4, body: '#e8e0d0', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 138, y: 88, w: 20, h: 11, roofH: 8, body: '#e8e0d0', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 164, y: 92, w: 16, h: 9,  roofH: 6, body: '#e0d8c8', roof: '#4a3a30', bandColor: '#a83824' },
+        { style: 'ger', x: 184, y: 95, w: 10, h: 7,  roofH: 4, body: '#e8e0d0', roof: '#4a3a30', bandColor: '#a83824' },
+      ],
+      trees: [],
+    },
+
     // Inner-city terrace — Victorian-era attached terraces (Fitzroy, Carlton, Notting Hill, Surry Hills)
     'inner-terrace': {
       name: 'Inner-city terrace',
@@ -3456,6 +4108,10 @@
     DM: 'caribbean-vibrant', KN: 'caribbean-vibrant', BZ: 'caribbean-vibrant',
     // North America
     US: 'american-suburb', CA: 'american-suburb',
+    // Russia + Slavic
+    RU: 'russian-izba', BY: 'russian-izba', UA: 'russian-izba', MD: 'russian-izba',
+    // Mongolia + steppe
+    MN: 'mongolian-ger',
     // Europe extras
     GB: 'british-cotswold', IE: 'british-cotswold',
     DE: 'bavarian-halftimber', AT: 'bavarian-halftimber', CZ: 'bavarian-halftimber',
@@ -3560,6 +4216,69 @@
         && ['CN','NP','BT','IN'].includes(loc.country_code || '')
         && (loc.population || 0) < 200000,
       scene: 'mountain-monastery',
+    },
+    {
+      // Australian Outback / Red Centre — Northern Territory + central WA + central QLD interior
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -32 && loc.lat <= -18
+        && loc.lon >= 122 && loc.lon <= 144,
+      scene: 'aussie-outback',
+    },
+    {
+      // Tropical Far North Queensland + Top End (Cairns, Townsville, Darwin)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -19 && loc.lat <= -10
+        && loc.lon >= 130 && loc.lon <= 155,
+      scene: 'aussie-tropical',
+    },
+    {
+      // Snowy Mountains (Thredbo, Jindabyne, Perisher) + Tas highlands (Cradle Mountain)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && ((loc.lat >= -36.8 && loc.lat <= -35.5 && loc.lon >= 148 && loc.lon <= 149)
+         || (loc.lat >= -42.5 && loc.lat <= -41.3 && loc.lon >= 145.5 && loc.lon <= 147)),
+      scene: 'aussie-alpine',
+    },
+    {
+      // Australian wine regions: Hunter, Barossa, McLaren Vale, Margaret River, Yarra Valley, Mudgee
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -32.85 && loc.lat <= -32.30 && loc.lon >= 151.00 && loc.lon <= 151.55) // Hunter
+          || (loc.lat >= -34.70 && loc.lat <= -34.30 && loc.lon >= 138.80 && loc.lon <= 139.30) // Barossa
+          || (loc.lat >= -35.30 && loc.lat <= -35.00 && loc.lon >= 138.40 && loc.lon <= 138.65) // McLaren Vale
+          || (loc.lat >= -34.10 && loc.lat <= -33.50 && loc.lon >= 114.95 && loc.lon <= 115.40) // Margaret River
+          || (loc.lat >= -37.85 && loc.lat <= -37.55 && loc.lon >= 145.30 && loc.lon <= 145.80) // Yarra Valley
+          || (loc.lat >= -32.70 && loc.lat <= -32.50 && loc.lon >= 149.40 && loc.lon <= 149.80) // Mudgee
+        ),
+      scene: 'aussie-wine-country',
+    },
+    {
+      // Australian outer suburbia — east-coast capital metros (200K–1M) get brick-veneer.
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && typeof loc.population === 'number'
+        && loc.population >= 150_000 && loc.population < 2_000_000
+        && loc.lat >= -38.5 && loc.lat <= -27 && loc.lon >= 138 && loc.lon <= 154,
+      scene: 'aussie-suburb',
+    },
+    {
+      // Tana Toraja highlands (South Sulawesi, Indonesia) → boat-roof tongkonan
+      match: (loc) => loc.country_code === 'ID'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -3.5 && loc.lat <= -2
+        && loc.lon >= 119 && loc.lon <= 121,
+      scene: 'toraja-tongkonan',
+    },
+    {
+      // Cape Town wine region (Stellenbosch, Franschhoek, Paarl, Constantia)
+      match: (loc) => loc.country_code === 'ZA'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -34.4 && loc.lat <= -33.3
+        && loc.lon >= 18.3 && loc.lon <= 19.5,
+      scene: 'cape-dutch',
     },
     {
       // Small tropical Pacific / Indian Ocean island nations → palm-stilts
