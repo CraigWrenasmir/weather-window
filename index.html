@@ -2973,6 +2973,185 @@
       ],
     },
 
+    // Sydney Harbour Federation — sandstone Federation mansions on the harbour
+    'aussie-sydney-harbour': {
+      name: 'Sydney Harbour',
+      palette: {
+        hillFar: '#7a9ab0', hillFarDark: '#3a4858', nightFar: '#1c2638',
+        hillMid: '#3a7aa8', hillMidDark: '#1f3a58', nightMid: '#15263c',
+        hillNear: '#5a7a52', hillNearDark: '#2a3a22', nightNear: '#141a10',
+      },
+      houses: [
+        { style: 'federation', x: 4,   y: 84, w: 26, h: 20, roofH: 5, body: '#d4b478', roof: '#7a3a22', veranda: true, verandaH: 5, verandaW: 28, verandaRoof: '#888888', frontGable: true, windows: [{x:4,y:5,w:5,h:6},{x:17,y:5,w:5,h:6}] },
+        { style: 'federation', x: 32,  y: 88, w: 22, h: 16, roofH: 4, body: '#c8a868', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 24, verandaRoof: '#888888', windows: [{x:4,y:4,w:5,h:6},{x:13,y:4,w:5,h:6}] },
+        { style: 'federation', x: 58,  y: 80, w: 30, h: 24, roofH: 6, body: '#d4b478', roof: '#7a3a22', veranda: true, verandaH: 5, verandaW: 32, verandaRoof: '#9a9a9a', frontGable: true, door: {x:13,y:16,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:7},{x:21,y:5,w:5,h:7}] },
+        { style: 'federation', x: 92,  y: 86, w: 24, h: 18, roofH: 5, body: '#c8a868', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 26, verandaRoof: '#9a9a9a', windows: [{x:4,y:4,w:5,h:6},{x:15,y:4,w:5,h:6}] },
+        { style: 'federation', x: 120, y: 78, w: 32, h: 26, roofH: 7, body: '#d4b478', roof: '#7a3a22', veranda: true, verandaH: 6, verandaW: 34, verandaRoof: '#888888', frontGable: true, door: {x:14,y:18,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:7},{x:23,y:5,w:5,h:7}] },
+        { style: 'federation', x: 156, y: 84, w: 26, h: 20, roofH: 5, body: '#c8a868', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 28, verandaRoof: '#9a9a9a', windows: [{x:4,y:4,w:5,h:7},{x:17,y:4,w:5,h:7}] },
+        { style: 'federation', x: 186, y: 90, w: 10, h: 14, roofH: 4, body: '#d4b478', roof: '#7a3a22', windows: [{x:3,y:4,w:4,h:6}] },
+      ],
+      trees: [
+        { style: 'palm', x: 22,  y: 104, h: 16, w: 7, sway: 0.6 },
+        { style: 'gum',  x: 86,  y: 102, h: 18, w: 8, sway: 0.6 },
+        { style: 'palm', x: 184, y: 104, h: 14, w: 6, sway: 0.6 },
+      ],
+    },
+
+    // Outback mining town — corrugated iron shacks plus a mine headframe (Mt Isa, Broken Hill, Kalgoorlie)
+    'aussie-mining': {
+      name: 'Outback mining town',
+      palette: {
+        hillFar: '#a86848', hillFarDark: '#4a2c1a', nightFar: '#22120a',
+        hillMid: '#9a5638', hillMidDark: '#3a2010', nightMid: '#1a0c06',
+        hillNear: '#a85838', hillNearDark: '#3a1810', nightNear: '#180a06',
+      },
+      houses: [
+        { style: 'tin-shack', x: 4,   y: 92, w: 18, h: 12, roofH: 3, body: '#c8a060', roof: '#7a7a7a', stumps: true, windows: [{x:3,y:4,w:4,h:4},{x:11,y:4,w:4,h:4}], door: {x:7,y:7,w:4,h:5}, tank: true },
+        { style: 'tin-shack', x: 28,  y: 96, w: 14, h: 8,  roofH: 2, body: '#a8884a', roof: '#7a7a7a', windows: [{x:3,y:2,w:3,h:3},{x:8,y:2,w:3,h:3}] },
+        // The headframe — the focal point
+        { style: 'mine-headframe', x: 46, y: 50, w: 18, h: 54, body: '#5a5a5a' },
+        { style: 'tin-shack', x: 70,  y: 94, w: 16, h: 10, roofH: 2, body: '#a8884a', roof: '#7a7a7a', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        { style: 'tin-shack', x: 92,  y: 88, w: 22, h: 16, roofH: 3, body: '#c8a060', roof: '#888888', stumps: true, door: {x:9,y:10,w:4,h:6}, windows: [{x:3,y:4,w:4,h:5},{x:14,y:4,w:4,h:5}], tank: true },
+        // Second smaller headframe
+        { style: 'mine-headframe', x: 122, y: 64, w: 14, h: 40, body: '#6a6a6a' },
+        { style: 'tin-shack', x: 142, y: 90, w: 20, h: 14, roofH: 3, body: '#b8884a', roof: '#888888', stumps: true, door: {x:8,y:9,w:4,h:5}, windows: [{x:3,y:3,w:4,h:5},{x:13,y:3,w:4,h:5}] },
+        { style: 'tin-shack', x: 166, y: 94, w: 16, h: 10, roofH: 2, body: '#c8a060', roof: '#7a7a7a', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        { style: 'tin-shack', x: 184, y: 96, w: 12, h: 8,  roofH: 2, body: '#a8884a', roof: '#7a7a7a', windows: [{x:2,y:2,w:3,h:3},{x:7,y:2,w:3,h:3}] },
+      ],
+      trees: [
+        { style: 'gum', x: 22,  y: 104, h: 10, w: 6, sway: 0.4 },
+        { style: 'gum', x: 178, y: 104, h: 10, w: 6, sway: 0.4 },
+      ],
+    },
+
+    // Country pub town — single main street with iconic two-storey pub + supporting buildings
+    'aussie-pub-town': {
+      name: 'Country pub town',
+      palette: {
+        hillFar: '#9aa890', hillFarDark: '#4a5444', nightFar: '#22282a',
+        hillMid: '#8a8a5a', hillMidDark: '#3a3a22', nightMid: '#1a1a10',
+        hillNear: '#7a8a4a', hillNearDark: '#2e3818', nightNear: '#141a0e',
+      },
+      houses: [
+        { style: 'weatherboard', x: 4,   y: 90, w: 18, h: 14, roofH: 3, body: '#e8d8b8', roof: '#888888', stumps: true, windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 26,  y: 92, w: 16, h: 12, roofH: 3, body: '#d4c0a0', roof: '#7c7c7c', windows: [{x:3,y:3,w:4,h:5},{x:9,y:3,w:4,h:5}] },
+        // The Pub — big two-storey federation with bullnose veranda + cresting
+        { style: 'federation', x: 46, y: 72, w: 38, h: 32, roofH: 5, body: '#c84a3a', roof: '#5a3a25', veranda: true, verandaH: 6, verandaW: 42, verandaRoof: '#9a9a9a', frontGable: true, door: {x:17,y:22,w:5,h:10,color:'#3a2818'}, windows: [{x:5,y:5,w:6,h:7},{x:27,y:5,w:6,h:7},{x:5,y:16,w:6,h:5},{x:27,y:16,w:6,h:5}] },
+        // Side store
+        { style: 'federation', x: 88, y: 84, w: 26, h: 20, roofH: 4, body: '#c8a868', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 28, verandaRoof: '#888888', door: {x:11,y:14,w:5,h:6}, windows: [{x:4,y:4,w:5,h:7},{x:17,y:4,w:5,h:7}] },
+        // Bank / post office
+        { style: 'federation', x: 118, y: 80, w: 28, h: 24, roofH: 5, body: '#a85a3a', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 30, verandaRoof: '#888888', frontGable: true, door: {x:12,y:16,w:5,h:8}, windows: [{x:4,y:4,w:5,h:7},{x:19,y:4,w:5,h:7}] },
+        // Smaller weatherboard cottages flanking
+        { style: 'weatherboard', x: 150, y: 90, w: 22, h: 14, roofH: 3, body: '#d4c0a0', roof: '#888888', stumps: true, windows: [{x:3,y:4,w:4,h:5},{x:14,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 176, y: 92, w: 20, h: 12, roofH: 3, body: '#e8d8b8', roof: '#7c7c7c', windows: [{x:3,y:3,w:4,h:5},{x:13,y:3,w:4,h:5}] },
+      ],
+      trees: [
+        { style: 'gum', x: 30,  y: 104, h: 14, w: 7, sway: 0.55 },
+        { style: 'gum', x: 188, y: 104, h: 12, w: 6, sway: 0.55 },
+      ],
+    },
+
+    // Daintree / Cape Tribulation rainforest — dense canopy, stilted lodges
+    'aussie-daintree': {
+      name: 'Daintree rainforest',
+      palette: {
+        hillFar: '#3a6a4a', hillFarDark: '#142a18', nightFar: '#0a1410',
+        hillMid: '#1f5a2a', hillMidDark: '#0a2010', nightMid: '#04100a',
+        hillNear: '#143a18', hillNearDark: '#06180a', nightNear: '#020806',
+      },
+      houses: [
+        { style: 'stilt-tropical', x: 4,   y: 82, w: 18, h: 12, roofH: 6, stiltH: 6, body: '#5a3a22', roof: '#3a2412', windows: [{x:3,y:4,w:4,h:4},{x:11,y:4,w:4,h:4}], veranda: true },
+        { style: 'stilt-tropical', x: 26,  y: 86, w: 14, h: 10, roofH: 5, stiltH: 5, body: '#6a4632', roof: '#2e1c0e', windows: [{x:3,y:3,w:3,h:3},{x:9,y:3,w:3,h:3}] },
+        { style: 'stilt-tropical', x: 50,  y: 76, w: 24, h: 14, roofH: 8, stiltH: 7, body: '#5a3a22', roof: '#3a2412', door: {x:10,y:8,w:4,h:6}, windows: [{x:3,y:4,w:5,h:5},{x:16,y:4,w:5,h:5}], veranda: true, ladder: true, overhang: 4 },
+        { style: 'stilt-tropical', x: 80,  y: 84, w: 18, h: 11, roofH: 6, stiltH: 6, body: '#6a4632', roof: '#3a2412', windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'stilt-tropical', x: 104, y: 74, w: 28, h: 18, roofH: 9, stiltH: 8, body: '#5a3a22', roof: '#3a2412', door: {x:12,y:10,w:4,h:8}, windows: [{x:3,y:4,w:5,h:6},{x:20,y:4,w:5,h:6}], veranda: true, ladder: true, overhang: 5 },
+        { style: 'stilt-tropical', x: 138, y: 82, w: 22, h: 12, roofH: 7, stiltH: 7, body: '#6a4632', roof: '#2e1c0e', windows: [{x:3,y:4,w:5,h:5},{x:14,y:4,w:5,h:5}], veranda: true },
+        { style: 'stilt-tropical', x: 166, y: 86, w: 18, h: 10, roofH: 5, stiltH: 6, body: '#5a3a22', roof: '#3a2412', windows: [{x:3,y:3,w:4,h:4},{x:11,y:3,w:4,h:4}] },
+      ],
+      trees: [
+        { style: 'palm',   x: 22, y: 104, h: 30, w: 11, sway: 0.95 },
+        { style: 'palm',   x: 42, y: 102, h: 32, w: 12, sway: 1.0 },
+        { style: 'bamboo', x: 70, y: 102, h: 26, w: 8, sway: 0.95 },
+        { style: 'palm',   x: 96, y: 104, h: 28, w: 11, sway: 0.95 },
+        { style: 'palm',   x: 130, y: 102, h: 32, w: 12, sway: 1.0 },
+        { style: 'bamboo', x: 158, y: 102, h: 24, w: 8, sway: 0.95 },
+        { style: 'palm',   x: 184, y: 104, h: 26, w: 10, sway: 0.9 },
+      ],
+    },
+
+    // Victorian High Country — cattlemen huts among snow gums (Mansfield, Bright, Omeo)
+    'aussie-high-country': {
+      name: 'Victorian High Country',
+      palette: {
+        hillFar: '#a8b4c0', hillFarDark: '#48505c', nightFar: '#2a3240',
+        hillMid: '#7a8a72', hillMidDark: '#3a4232', nightMid: '#181f1a',
+        hillNear: '#7a6a48', hillNearDark: '#2a2418', nightNear: '#10100a',
+      },
+      houses: [
+        { style: 'cabin', x: 4,   y: 88, w: 16, h: 16, roofH: 7, body: '#6a4630', roof: '#3a201a', noSnow: true, windows: [{x:3,y:6,w:3,h:4},{x:9,y:6,w:3,h:4}], chimney: {x:11,y:-3,w:3,h:5} },
+        { style: 'cabin', x: 22,  y: 92, w: 14, h: 12, roofH: 5, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:4,w:3,h:3},{x:8,y:4,w:3,h:3}] },
+        { style: 'cabin', x: 42,  y: 84, w: 22, h: 20, roofH: 9, body: '#6a4630', roof: '#3a201a', noSnow: true, door: {x:9,y:12,w:4,h:8,color:'#3a2818'}, windows: [{x:4,y:6,w:4,h:5},{x:13,y:6,w:4,h:5}], chimney: {x:14,y:-4,w:3,h:6} },
+        { style: 'cabin', x: 68,  y: 90, w: 16, h: 14, roofH: 6, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:5,w:3,h:4},{x:10,y:5,w:3,h:4}] },
+        { style: 'cabin', x: 88,  y: 80, w: 24, h: 24, roofH: 11, body: '#6a4630', roof: '#3a201a', noSnow: true, door: {x:10,y:14,w:4,h:10,color:'#3a2818'}, windows: [{x:3,y:5,w:4,h:5},{x:17,y:5,w:4,h:5}], chimney: {x:17,y:-5,w:3,h:7} },
+        { style: 'cabin', x: 116, y: 88, w: 18, h: 16, roofH: 7, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:5,w:4,h:5},{x:11,y:5,w:4,h:5}] },
+        { style: 'cabin', x: 138, y: 76, w: 28, h: 28, roofH: 12, body: '#6a4630', roof: '#3a201a', noSnow: true, door: {x:11,y:16,w:5,h:12,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:6},{x:19,y:5,w:5,h:6}], chimney: {x:20,y:-6,w:4,h:8} },
+        { style: 'cabin', x: 170, y: 90, w: 14, h: 14, roofH: 6, body: '#7a5640', roof: '#3a201a', noSnow: true, windows: [{x:3,y:5,w:3,h:4},{x:8,y:5,w:3,h:4}] },
+      ],
+      trees: [
+        { style: 'gum', x: 20,  y: 104, h: 22, w: 10, sway: 0.55 },
+        { style: 'gum', x: 76,  y: 102, h: 28, w: 13, sway: 0.6  },
+        { style: 'gum', x: 160, y: 104, h: 24, w: 11, sway: 0.55 },
+        { style: 'gum', x: 188, y: 105, h: 20, w: 9,  sway: 0.55 },
+      ],
+    },
+
+    // Hobart sandstone heritage — colonial Federation on Mt Wellington palette
+    'aussie-hobart': {
+      name: 'Hobart heritage',
+      palette: {
+        hillFar: '#7a8a98', hillFarDark: '#3a4458', nightFar: '#1c2638',
+        hillMid: '#5a6a52', hillMidDark: '#2a3422', nightMid: '#141a14',
+        hillNear: '#4a5a3a', hillNearDark: '#1e2418', nightNear: '#0e120a',
+      },
+      houses: [
+        { style: 'federation', x: 4,   y: 86, w: 22, h: 18, roofH: 4, body: '#d4b478', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 24, verandaRoof: '#888888', windows: [{x:4,y:5,w:5,h:6},{x:13,y:5,w:5,h:6}] },
+        { style: 'federation', x: 30,  y: 90, w: 18, h: 14, roofH: 3, body: '#b89868', roof: '#5a3a25', veranda: true, verandaH: 3, verandaW: 20, verandaRoof: '#888888', windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'federation', x: 52,  y: 80, w: 28, h: 24, roofH: 5, body: '#d4b478', roof: '#7a3a22', veranda: true, verandaH: 5, verandaW: 30, verandaRoof: '#888888', frontGable: true, door: {x:12,y:16,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:6},{x:19,y:5,w:5,h:6}] },
+        { style: 'federation', x: 84,  y: 88, w: 22, h: 16, roofH: 4, body: '#b89868', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 24, verandaRoof: '#888888', windows: [{x:4,y:4,w:5,h:6},{x:13,y:4,w:5,h:6}] },
+        { style: 'federation', x: 110, y: 78, w: 30, h: 26, roofH: 6, body: '#d4b478', roof: '#7a3a22', veranda: true, verandaH: 5, verandaW: 32, verandaRoof: '#888888', frontGable: true, door: {x:13,y:18,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:7},{x:21,y:5,w:5,h:7}] },
+        { style: 'federation', x: 144, y: 86, w: 24, h: 18, roofH: 4, body: '#b89868', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 26, verandaRoof: '#888888', windows: [{x:4,y:4,w:5,h:6},{x:15,y:4,w:5,h:6}] },
+        { style: 'federation', x: 172, y: 82, w: 24, h: 22, roofH: 5, body: '#d4b478', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 26, verandaRoof: '#888888', door: {x:10,y:14,w:5,h:8}, windows: [{x:3,y:5,w:5,h:6},{x:16,y:5,w:5,h:6}] },
+      ],
+      trees: [
+        { style: 'pine', x: 28,  y: 102, h: 14, w: 7, sway: 0.55 },
+        { style: 'pine', x: 80,  y: 100, h: 16, w: 8, sway: 0.6  },
+        { style: 'gum',  x: 188, y: 102, h: 14, w: 7, sway: 0.55 },
+      ],
+    },
+
+    // Canberra planned suburbia — blonde brick low-rise with wide grass verges
+    'aussie-canberra': {
+      name: 'Canberra suburbia',
+      palette: {
+        hillFar: '#8a9aa0', hillFarDark: '#3a464a', nightFar: '#1c2228',
+        hillMid: '#7a8a5a', hillMidDark: '#3a4222', nightMid: '#181c10',
+        hillNear: '#6a8a4a', hillNearDark: '#2e3a1c', nightNear: '#101810',
+      },
+      houses: [
+        { style: 'brick-veneer', x: 6,   y: 90, w: 28, h: 12, roofH: 3, body: '#c8a878', roof: '#7a7a7a', garage: true, windows: [{x:3,y:3,w:4,h:5},{x:10,y:3,w:4,h:5}], door: {x:16,y:6,w:4,h:6} },
+        { style: 'brick-veneer', x: 38,  y: 88, w: 30, h: 14, roofH: 4, body: '#b89868', roof: '#6a6a6a', garage: true, windows: [{x:3,y:4,w:4,h:5},{x:10,y:4,w:4,h:5}], door: {x:17,y:8,w:4,h:6} },
+        { style: 'brick-veneer', x: 72,  y: 86, w: 32, h: 16, roofH: 4, body: '#c8a878', roof: '#7a7a7a', garage: true, windows: [{x:3,y:4,w:5,h:6},{x:11,y:4,w:5,h:6}], door: {x:19,y:9,w:4,h:7} },
+        { style: 'brick-veneer', x: 108, y: 88, w: 28, h: 14, roofH: 3, body: '#9a7e58', roof: '#6a6a6a', garage: true, windows: [{x:3,y:4,w:4,h:5},{x:10,y:4,w:4,h:5}], door: {x:17,y:8,w:4,h:6} },
+        { style: 'brick-veneer', x: 140, y: 84, w: 32, h: 18, roofH: 5, body: '#c8a878', roof: '#7a7a7a', garage: true, windows: [{x:3,y:5,w:5,h:6},{x:11,y:5,w:5,h:6}], door: {x:19,y:11,w:4,h:7} },
+        { style: 'brick-veneer', x: 176, y: 90, w: 20, h: 12, roofH: 3, body: '#b89868', roof: '#7a7a7a', windows: [{x:3,y:3,w:4,h:5},{x:10,y:3,w:4,h:5}], door: {x:14,y:6,w:4,h:6} },
+      ],
+      trees: [
+        { style: 'gum', x: 36,  y: 102, h: 12, w: 6, sway: 0.55 },
+        { style: 'gum', x: 104, y: 100, h: 14, w: 7, sway: 0.6  },
+        { style: 'gum', x: 174, y: 102, h: 12, w: 6, sway: 0.55 },
+      ],
+    },
+
     // Wollongong beach view — beach houses on sand with ocean horizon and escarpment behind
     'aussie-wollongong': {
       name: 'Wollongong beach',
@@ -4704,6 +4883,72 @@
         && ['CN','NP','BT','IN'].includes(loc.country_code || '')
         && (loc.population || 0) < 200000,
       scene: 'mountain-monastery',
+    },
+    {
+      // Sydney Harbour eastern suburbs + lower north shore (Vaucluse, Watsons Bay, Mosman, Kirribilli)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -33.87 && loc.lat <= -33.78
+        && loc.lon >= 151.20 && loc.lon <= 151.30,
+      scene: 'aussie-sydney-harbour',
+    },
+    {
+      // Outback mining towns — Mt Isa, Broken Hill, Kalgoorlie, Coober Pedy
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -21.0  && loc.lat <= -20.6  && loc.lon >= 139.4 && loc.lon <= 139.6)  // Mt Isa
+          || (loc.lat >= -32.0  && loc.lat <= -31.9  && loc.lon >= 141.4 && loc.lon <= 141.5)  // Broken Hill
+          || (loc.lat >= -30.85 && loc.lat <= -30.65 && loc.lon >= 121.4 && loc.lon <= 121.6)  // Kalgoorlie-Boulder
+          || (loc.lat >= -29.10 && loc.lat <= -28.95 && loc.lon >= 134.7 && loc.lon <= 134.85) // Coober Pedy
+        ),
+      scene: 'aussie-mining',
+    },
+    {
+      // Daintree / Cape Tribulation / Mossman rainforest
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -16.6 && loc.lat <= -15.9
+        && loc.lon >= 145.2 && loc.lon <= 145.7,
+      scene: 'aussie-daintree',
+    },
+    {
+      // Victorian High Country / NSW Monaro alpine fringe (Mansfield, Bright, Omeo, Khancoban)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -37.20 && loc.lat <= -36.85 && loc.lon >= 146.30 && loc.lon <= 147.10) // Mansfield + Bright
+          || (loc.lat >= -37.10 && loc.lat <= -36.80 && loc.lon >= 147.50 && loc.lon <= 148.00) // Omeo + Hotham
+          || (loc.lat >= -36.40 && loc.lat <= -36.10 && loc.lon >= 148.00 && loc.lon <= 148.30) // Khancoban
+        ),
+      scene: 'aussie-high-country',
+    },
+    {
+      // Hobart sandstone heritage (CBD + Battery Point + Sandy Bay)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -42.95 && loc.lat <= -42.85
+        && loc.lon >= 147.30 && loc.lon <= 147.40,
+      scene: 'aussie-hobart',
+    },
+    {
+      // Canberra planned suburbia (Civic, Belconnen, Tuggeranong, Woden)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -35.50 && loc.lat <= -35.18
+        && loc.lon >= 148.95 && loc.lon <= 149.25,
+      scene: 'aussie-canberra',
+    },
+    {
+      // Country pub towns — too many to bbox individually, so this fires for very-small inland
+      // towns in NSW/VIC/QLD with population under 3000 (a rural single-street feel).
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && typeof loc.population === 'number'
+        && loc.population > 0 && loc.population <= 3000
+        && loc.lat >= -38 && loc.lat <= -28
+        && loc.lon >= 143 && loc.lon <= 152,
+      scene: 'aussie-pub-town',
     },
     {
       // Wollongong & Illawarra coast (NSW) — beach view with escarpment behind
