@@ -765,6 +765,165 @@
       }
     },
 
+    // Australian Federation / Goldfields heritage — brick/sandstone with bullnose veranda + iron lace
+    federation(ctx, bx, by, h) {
+      // body — brick or sandstone with mortar pattern
+      px(ctx, bx, by, h.w, h.h, h.body);
+      if (h.brick !== false) {
+        for (let y = by + 2; y < by + h.h - 1; y += 2) {
+          const offset = ((y - by) % 4 === 2) ? 2 : 0;
+          for (let x = bx + offset; x < bx + h.w; x += 4) {
+            px(ctx, x, y, 1, 1, shade(h.body, -0.18));
+          }
+        }
+      }
+      px(ctx, bx + h.w - 1, by, 1, h.h, shade(h.body, -0.22));
+      px(ctx, bx, by, 1, h.h, shade(h.body, 0.06));
+      px(ctx, bx, by + h.h - 1, h.w, 1, shade(h.body, -0.3));
+
+      // hipped roof
+      const roofH = h.roofH || 4;
+      for (let i = 0; i < roofH; i++) {
+        const t = i / Math.max(1, roofH - 1);
+        const sw = Math.max(2, Math.round(h.w + 2 - t * (h.w * 0.55)));
+        const sx = bx - 1 + Math.round((h.w + 2 - sw) / 2);
+        if (sw > 0) px(ctx, sx, by - i - 1, sw, 1, h.roof);
+        if (i > 0 && i % 2 === 1 && sw > 4) {
+          px(ctx, sx + 1, by - i - 1, sw - 2, 1, shade(h.roof, 0.15));
+        }
+      }
+      px(ctx, bx - 1, by - 1, h.w + 2, 1, shade(h.roof, -0.3));
+
+      // ornamental front gable (with finial)
+      if (h.frontGable) {
+        const gW = Math.max(4, Math.floor(h.w * 0.4));
+        const gx = bx + Math.floor((h.w - gW) / 2);
+        const gH = Math.max(3, Math.floor(roofH * 0.8));
+        for (let i = 0; i < gH; i++) {
+          const t = i / Math.max(1, gH - 1);
+          const sw = Math.max(1, Math.round(gW - t * (gW - 1)));
+          const sx = gx + Math.round((gW - sw) / 2);
+          px(ctx, sx, by - i - 1, sw, 1, h.roof);
+        }
+        // iron cresting finial
+        px(ctx, gx + (gW >> 1), by - gH - 1, 1, 2, '#1a1a1a');
+      }
+
+      // bullnose veranda extending in front
+      if (h.veranda) {
+        const verH = h.verandaH || 4;
+        const verW = Math.min(h.w + 4, h.verandaW || (h.w + 4));
+        const verX = bx + Math.floor((h.w - verW) / 2);
+        const verY = by + Math.floor(h.h * 0.4);
+        const verRoof = h.verandaRoof || '#9a9a9a';
+        // bullnose curved roof
+        for (let dx = 0; dx < verW; dx++) {
+          const t = dx / Math.max(1, verW - 1);
+          const arc = Math.round(Math.sin(t * Math.PI) * 1);
+          px(ctx, verX + dx, verY - arc, 1, 1, verRoof);
+        }
+        // shadow under the bullnose
+        px(ctx, verX, verY + 1, verW, 1, shade(verRoof, -0.3));
+        // posts
+        const postColor = h.postColor || '#3a2818';
+        const postBaseY = by + h.h;
+        px(ctx, verX, verY + 2, 1, postBaseY - verY - 2, postColor);
+        px(ctx, verX + verW - 1, verY + 2, 1, postBaseY - verY - 2, postColor);
+        if (verW > 14) {
+          px(ctx, verX + Math.floor(verW / 3), verY + 2, 1, postBaseY - verY - 2, postColor);
+          px(ctx, verX + Math.floor(2 * verW / 3), verY + 2, 1, postBaseY - verY - 2, postColor);
+        }
+        // cast iron lacework friezeline (alternating black pixels)
+        for (let dx = 1; dx < verW - 1; dx++) {
+          if (dx % 2 === 0) px(ctx, verX + dx, verY + 2, 1, 1, '#1a1a1a');
+          if (dx % 3 === 0) px(ctx, verX + dx, verY + 3, 1, 1, '#1a1a1a');
+        }
+        // veranda floor edge
+        px(ctx, verX, postBaseY - 1, verW, 1, shade(postColor, 0.2));
+      }
+
+      // windows
+      const lit = !state.isDay || state.sunPhase < 0.27 || state.sunPhase > 0.73;
+      for (const w of h.windows || []) {
+        const wx = bx + w.x, wy = by + w.y;
+        px(ctx, wx - 1, wy - 1, w.w + 2, w.h + 2, '#3a2818');
+        px(ctx, wx, wy, w.w, w.h, lit ? '#f0c878' : '#3a4a5e');
+        if (w.w >= 3) px(ctx, wx + (w.w >> 1), wy, 1, w.h, '#5a4a3a');
+        if (w.h >= 5) px(ctx, wx, wy + (w.h >> 1), w.w, 1, '#5a4a3a');
+        if (lit) {
+          ctx.fillStyle = 'rgba(240,200,122,0.16)';
+          ctx.fillRect(wx - 2, wy - 2, w.w + 4, w.h + 4);
+        }
+      }
+      // panelled front door with fanlight
+      if (h.door) {
+        const d = h.door;
+        const dx = bx + d.x, dy = by + d.y;
+        px(ctx, dx, dy - 1, d.w, 1, '#f0e0c0');
+        px(ctx, dx, dy, d.w, d.h, d.color || '#5a2418');
+        px(ctx, dx + (d.w >> 1), dy, 1, d.h, '#2a1208');
+        px(ctx, dx + d.w - 2, dy + (d.h >> 1), 1, 1, '#d4a040');
+      }
+    },
+
+    // Grain silo — tall cylinder with conical or domed top (paddock prop).
+    silo(ctx, bx, by, h) {
+      px(ctx, bx, by, h.w, h.h, h.body);
+      px(ctx, bx, by, 1, h.h, shade(h.body, 0.12));
+      px(ctx, bx + h.w - 1, by, 1, h.h, shade(h.body, -0.22));
+      // horizontal corrugation bands
+      for (let y = by + 2; y < by + h.h - 1; y += 2) {
+        px(ctx, bx + 1, y, h.w - 2, 1, shade(h.body, -0.12));
+      }
+      // base ring
+      px(ctx, bx, by + h.h - 1, h.w, 1, shade(h.body, -0.32));
+      // conical top
+      const topH = h.topH || 3;
+      for (let i = 0; i < topH; i++) {
+        const t = i / Math.max(1, topH - 1);
+        const sw = Math.max(1, Math.round(h.w - t * (h.w - 1)));
+        const sx = bx + Math.round((h.w - sw) / 2);
+        px(ctx, sx, by - i - 1, sw, 1, shade(h.body, -0.18));
+      }
+      // small vent / cap
+      px(ctx, bx + (h.w >> 1), by - topH - 1, 1, 1, '#3a3a3a');
+    },
+
+    // Windmill — spinning multi-blade water pump, classic outback prop.
+    windmill(ctx, bx, by, h) {
+      const poleX = bx + (h.w >> 1);
+      const poleColor = '#3a2818';
+      // pole
+      px(ctx, poleX, by + 5, 1, h.h - 5, poleColor);
+      // X bracing along the pole
+      for (let dy = 10; dy < h.h; dy += 8) {
+        px(ctx, poleX - 1, by + dy, 1, 1, poleColor);
+        px(ctx, poleX + 1, by + dy, 1, 1, poleColor);
+      }
+      // base spread legs
+      px(ctx, bx, by + h.h - 1, h.w, 1, poleColor);
+      px(ctx, bx + 1, by + h.h - 2, 1, 1, poleColor);
+      px(ctx, bx + h.w - 2, by + h.h - 2, 1, 1, poleColor);
+      // multi-blade wheel — spin speed scales with wind
+      const spin = state.time * (0.4 + state.windKph / 25);
+      const headY = by + 5;
+      const r = 4;
+      const blades = 8;
+      for (let i = 0; i < blades; i++) {
+        const a = (i / blades) * Math.PI * 2 + spin;
+        for (let rr = 1; rr <= r; rr++) {
+          const bx2 = poleX + Math.round(Math.cos(a) * rr);
+          const by2 = headY + Math.round(Math.sin(a) * rr);
+          px(ctx, bx2, by2, 1, 1, rr === r ? '#888888' : '#a8a8a8');
+        }
+      }
+      px(ctx, poleX, headY, 1, 1, '#3a3a3a');
+      // tail vane
+      px(ctx, poleX + 2, headY - 2, 3, 1, '#5a3a22');
+      px(ctx, poleX + 2, headY - 1, 4, 1, '#7a4a2a');
+      px(ctx, poleX + 2, headY, 1, 1, '#3a2818');
+    },
+
     // Australian outback tin-shack — corrugated iron walls, low-pitch roof, optional water tank.
     'tin-shack'(ctx, bx, by, h) {
       if (h.stumps) {
@@ -2767,6 +2926,165 @@
       ],
     },
 
+    // Australian surf/beach town — bright pastel weatherboard with palms (Byron, Noosa, Gold Coast)
+    'aussie-surf': {
+      name: 'Australian beach town',
+      palette: {
+        hillFar: '#7ac0c8', hillFarDark: '#3a6a72', nightFar: '#1a3a48',
+        hillMid: '#7aae5a', hillMidDark: '#3a5a2a', nightMid: '#1a2818',
+        hillNear: '#e8c890', hillNearDark: '#7a6438', nightNear: '#2a1f10',
+      },
+      houses: [
+        { style: 'weatherboard', x: 4,   y: 90, w: 20, h: 14, roofH: 3, body: '#f8c8c8', roof: '#9a9a9a', stumps: true, veranda: true, windows: [{x:3,y:4,w:5,h:5},{x:12,y:4,w:5,h:5}] },
+        { style: 'weatherboard', x: 28,  y: 92, w: 16, h: 12, roofH: 3, body: '#a8d4d4', roof: '#888888', windows: [{x:3,y:4,w:4,h:5},{x:9,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 48,  y: 86, w: 24, h: 18, roofH: 4, body: '#f8e0a0', roof: '#9a9a9a', stumps: true, veranda: true, door: {x:10,y:11,w:4,h:7}, windows: [{x:4,y:5,w:5,h:5},{x:15,y:5,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 76,  y: 90, w: 18, h: 14, roofH: 3, body: '#c8e8c8', roof: '#888888', stumps: true, windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 98,  y: 82, w: 28, h: 22, roofH: 4, body: '#f0a8a0', roof: '#9a9a9a', stumps: true, veranda: true, door: {x:11,y:13,w:4,h:9}, windows: [{x:3,y:5,w:5,h:5},{x:20,y:5,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 130, y: 88, w: 20, h: 16, roofH: 3, body: '#a8c8e8', roof: '#888888', stumps: true, windows: [{x:3,y:5,w:5,h:5},{x:12,y:5,w:5,h:5}] },
+        { style: 'weatherboard', x: 154, y: 84, w: 26, h: 20, roofH: 4, body: '#f8e8c8', roof: '#7a7a7a', stumps: true, veranda: true, door: {x:11,y:12,w:4,h:8}, windows: [{x:3,y:4,w:5,h:5},{x:17,y:4,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 184, y: 92, w: 12, h: 12, roofH: 3, body: '#f8c8c8', roof: '#888888', windows: [{x:2,y:4,w:3,h:4},{x:7,y:4,w:3,h:4}] },
+      ],
+      trees: [
+        { style: 'palm', x: 22,  y: 104, h: 20, w: 8, sway: 0.75 },
+        { style: 'palm', x: 74,  y: 102, h: 24, w: 9, sway: 0.8 },
+        { style: 'palm', x: 148, y: 104, h: 20, w: 8, sway: 0.75 },
+        { style: 'palm', x: 188, y: 104, h: 16, w: 7, sway: 0.7 },
+      ],
+    },
+
+    // Tasmanian fishing village — weatherboard cottages in cool grey-blue, slate roofs
+    'aussie-tasmania-fishing': {
+      name: 'Tasmanian fishing village',
+      palette: {
+        hillFar: '#5a7a8a', hillFarDark: '#28384a', nightFar: '#142028',
+        hillMid: '#3a6a78', hillMidDark: '#1a2e32', nightMid: '#0e1a20',
+        hillNear: '#5a7a5a', hillNearDark: '#26362a', nightNear: '#10180e',
+      },
+      houses: [
+        { style: 'weatherboard', x: 4,   y: 90, w: 18, h: 14, roofH: 3, body: '#d4dcd8', roof: '#3a3a3a', windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}], door: {x:8,y:9,w:4,h:5} },
+        { style: 'weatherboard', x: 26,  y: 93, w: 16, h: 11, roofH: 3, body: '#a8b8b0', roof: '#3a3a3a', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        { style: 'weatherboard', x: 46,  y: 88, w: 22, h: 16, roofH: 3, body: '#e0d4c0', roof: '#5a2818', stumps: true, door: {x:9,y:10,w:4,h:6}, windows: [{x:3,y:4,w:4,h:5},{x:14,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 72,  y: 91, w: 18, h: 13, roofH: 3, body: '#a8b8b0', roof: '#3a3a3a', windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 94,  y: 84, w: 26, h: 20, roofH: 4, body: '#d4dcd8', roof: '#5a2818', stumps: true, veranda: true, door: {x:11,y:12,w:4,h:8}, windows: [{x:3,y:4,w:5,h:5},{x:18,y:4,w:5,h:5}] },
+        { style: 'weatherboard', x: 124, y: 89, w: 18, h: 15, roofH: 3, body: '#c0c8b8', roof: '#3a3a3a', windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        { style: 'weatherboard', x: 146, y: 82, w: 28, h: 22, roofH: 4, body: '#e0d4c0', roof: '#5a2818', stumps: true, veranda: true, door: {x:12,y:13,w:4,h:9}, windows: [{x:4,y:5,w:5,h:5},{x:19,y:5,w:5,h:5}] },
+        { style: 'weatherboard', x: 178, y: 90, w: 16, h: 14, roofH: 3, body: '#a8b8b0', roof: '#3a3a3a', windows: [{x:3,y:4,w:4,h:5},{x:9,y:4,w:4,h:5}] },
+      ],
+      trees: [
+        { style: 'pine', x: 30,  y: 104, h: 12, w: 6, sway: 0.55 },
+        { style: 'pine', x: 84,  y: 102, h: 16, w: 8, sway: 0.6 },
+        { style: 'pine', x: 188, y: 104, h: 11, w: 6, sway: 0.55 },
+      ],
+    },
+
+    // Adelaide Hills (Hahndorf, Lobethal) — German Australian half-timber + Aussie palette
+    'aussie-adelaide-hills': {
+      name: 'Adelaide Hills',
+      palette: {
+        hillFar: '#7a8a78', hillFarDark: '#3a4234', nightFar: '#1a221c',
+        hillMid: '#6a8a4a', hillMidDark: '#324028', nightMid: '#161e14',
+        hillNear: '#5a7a3a', hillNearDark: '#2a3818', nightNear: '#10180e',
+      },
+      houses: [
+        { style: 'halftimber', x: 4,   y: 88, w: 18, h: 14, roofH: 5, body: '#e8e0d0', roof: '#a04a30', shutterColor: '#5a2418', windows: [{x:3,y:3,w:4,h:4},{x:10,y:3,w:4,h:4}], gableWindow: true, chimney: {x:13,y:-3,w:3,h:5} },
+        { style: 'halftimber', x: 26,  y: 92, w: 16, h: 12, roofH: 4, body: '#e8e0d0', roof: '#7a3a22', shutterColor: '#3a6a3a', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        { style: 'halftimber', x: 44,  y: 84, w: 22, h: 18, roofH: 7, body: '#e8e0d0', roof: '#a04a30', shutterColor: '#7a3024', door: {x:9,y:12,w:4,h:6,color:'#3a2818'}, windows: [{x:3,y:3,w:4,h:5},{x:15,y:3,w:4,h:5}], gableWindow: true, chimney: {x:15,y:-4,w:3,h:6} },
+        { style: 'halftimber', x: 70,  y: 90, w: 18, h: 14, roofH: 5, body: '#e8e0d0', roof: '#7a3a22', shutterColor: '#3a6a3a', windows: [{x:3,y:4,w:4,h:4},{x:11,y:4,w:4,h:4}] },
+        { style: 'halftimber', x: 92,  y: 80, w: 26, h: 22, roofH: 8, body: '#e8e0d0', roof: '#a04a30', shutterColor: '#7a3024', door: {x:11,y:14,w:4,h:8,color:'#3a2818'}, windows: [{x:3,y:4,w:5,h:5},{x:18,y:4,w:5,h:5}], gableWindow: true, chimney: {x:18,y:-6,w:3,h:8} },
+        { style: 'halftimber', x: 122, y: 86, w: 22, h: 18, roofH: 6, body: '#e8e0d0', roof: '#a04a30', shutterColor: '#3a6a3a', windows: [{x:3,y:4,w:5,h:5},{x:14,y:4,w:5,h:5}] },
+        { style: 'halftimber', x: 148, y: 76, w: 28, h: 26, roofH: 9, body: '#e8e0d0', roof: '#a04a30', shutterColor: '#7a3024', door: {x:12,y:17,w:5,h:9,color:'#3a2818'}, windows: [{x:4,y:4,w:5,h:6},{x:19,y:4,w:5,h:6}], gableWindow: true, chimney: {x:22,y:-7,w:3,h:9} },
+        { style: 'halftimber', x: 180, y: 90, w: 14, h: 14, roofH: 5, body: '#e8e0d0', roof: '#7a3a22', shutterColor: '#3a6a3a', windows: [{x:3,y:4,w:4,h:4},{x:8,y:4,w:4,h:4}] },
+      ],
+      trees: [
+        { style: 'gum',   x: 24,  y: 104, h: 18, w: 8, sway: 0.6 },
+        { style: 'olive', x: 78,  y: 103, h: 11, w: 9, sway: 0.55 },
+        { style: 'gum',   x: 188, y: 104, h: 16, w: 7, sway: 0.6 },
+      ],
+    },
+
+    // Murray River town (Echuca, Mildura, Mannum) — riverside weatherboard with river red gums
+    'aussie-murray-river': {
+      name: 'Murray River town',
+      palette: {
+        hillFar: '#9a8a6a', hillFarDark: '#4a4232', nightFar: '#241c12',
+        hillMid: '#8a7a48', hillMidDark: '#3a3220', nightMid: '#1c180e',
+        hillNear: '#7a8a4a', hillNearDark: '#2e3818', nightNear: '#141a0e',
+      },
+      houses: [
+        { style: 'weatherboard', x: 4,   y: 90, w: 20, h: 14, roofH: 3, body: '#f0e0a8', roof: '#8a8a8a', stumps: true, veranda: true, windows: [{x:4,y:4,w:4,h:5},{x:12,y:4,w:4,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 28,  y: 94, w: 16, h: 10, roofH: 2, body: '#e0d0a0', roof: '#9c9c9c', windows: [{x:3,y:3,w:4,h:4},{x:9,y:3,w:4,h:4}] },
+        { style: 'weatherboard', x: 48,  y: 86, w: 26, h: 18, roofH: 4, body: '#f0d8b0', roof: '#7a7a7a', stumps: true, veranda: true, door: {x:11,y:11,w:4,h:7}, windows: [{x:4,y:4,w:5,h:5},{x:17,y:4,w:5,h:5}], overhang: 4 },
+        { style: 'weatherboard', x: 78,  y: 90, w: 18, h: 14, roofH: 3, body: '#e8d4a0', roof: '#888888', stumps: true, windows: [{x:3,y:4,w:4,h:5},{x:11,y:4,w:4,h:5}] },
+        // Old pub / general store — Federation-style brick
+        { style: 'federation', x: 100, y: 80, w: 32, h: 24, roofH: 4, body: '#c84a3a', roof: '#5a3a25', veranda: true, verandaH: 5, verandaW: 36, verandaRoof: '#9a9a9a', frontGable: true, door: {x:14,y:16,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:4,w:5,h:6},{x:23,y:4,w:5,h:6}] },
+        { style: 'weatherboard', x: 138, y: 86, w: 22, h: 18, roofH: 3, body: '#f0e0a8', roof: '#8a8a8a', stumps: true, veranda: true, windows: [{x:3,y:5,w:5,h:5},{x:14,y:5,w:5,h:5}], overhang: 3 },
+        { style: 'weatherboard', x: 164, y: 88, w: 30, h: 16, roofH: 4, body: '#e8d4a0', roof: '#7a7a7a', stumps: true, veranda: true, door: {x:13,y:9,w:4,h:7}, windows: [{x:3,y:4,w:5,h:5},{x:21,y:4,w:5,h:5}], overhang: 3 },
+      ],
+      trees: [
+        // river red gums — taller and broader
+        { style: 'gum', x: 20,  y: 104, h: 24, w: 11, sway: 0.65 },
+        { style: 'gum', x: 90,  y: 102, h: 28, w: 13, sway: 0.7 },
+        { style: 'gum', x: 188, y: 104, h: 22, w: 10, sway: 0.65 },
+      ],
+    },
+
+    // Federation / Goldfields heritage town (Ballarat, Bendigo, Sydney harbour heritage)
+    'aussie-federation': {
+      name: 'Federation goldfields',
+      palette: {
+        hillFar: '#7a8a98', hillFarDark: '#3a4858', nightFar: '#1c2638',
+        hillMid: '#5a7a5a', hillMidDark: '#2a3a2a', nightMid: '#142018',
+        hillNear: '#4a6a3a', hillNearDark: '#1e2e18', nightNear: '#0e1610',
+      },
+      houses: [
+        { style: 'federation', x: 4,   y: 86, w: 22, h: 18, roofH: 4, body: '#a85a3a', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 24, verandaRoof: '#9a9a9a', windows: [{x:4,y:4,w:5,h:6},{x:13,y:4,w:5,h:6}] },
+        { style: 'federation', x: 30,  y: 90, w: 18, h: 14, roofH: 3, body: '#c8a878', roof: '#5a3a25', veranda: true, verandaH: 3, verandaW: 20, verandaRoof: '#888888', windows: [{x:3,y:3,w:4,h:5},{x:11,y:3,w:4,h:5}] },
+        { style: 'federation', x: 52,  y: 80, w: 30, h: 24, roofH: 5, body: '#a85a3a', roof: '#5a3a25', veranda: true, verandaH: 5, verandaW: 32, verandaRoof: '#888888', frontGable: true, door: {x:13,y:16,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:6},{x:21,y:5,w:5,h:6}] },
+        { style: 'federation', x: 86,  y: 88, w: 20, h: 16, roofH: 4, body: '#c8a878', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 22, verandaRoof: '#9a9a9a', windows: [{x:3,y:4,w:5,h:6},{x:12,y:4,w:5,h:6}] },
+        { style: 'federation', x: 110, y: 78, w: 32, h: 26, roofH: 6, body: '#a85a3a', roof: '#5a3a25', veranda: true, verandaH: 5, verandaW: 34, verandaRoof: '#888888', frontGable: true, door: {x:14,y:18,w:5,h:8,color:'#3a2818'}, windows: [{x:4,y:5,w:5,h:6},{x:23,y:5,w:5,h:6}] },
+        { style: 'federation', x: 146, y: 86, w: 24, h: 18, roofH: 4, body: '#c8a878', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 26, verandaRoof: '#9a9a9a', windows: [{x:4,y:4,w:5,h:6},{x:15,y:4,w:5,h:6}] },
+        { style: 'federation', x: 174, y: 82, w: 22, h: 22, roofH: 5, body: '#a85a3a', roof: '#5a3a25', veranda: true, verandaH: 4, verandaW: 24, verandaRoof: '#888888', door: {x:9,y:14,w:5,h:8}, windows: [{x:3,y:5,w:5,h:6},{x:14,y:5,w:5,h:6}] },
+      ],
+      trees: [
+        { style: 'pine',  x: 28,  y: 102, h: 12, w: 6, sway: 0.55 },
+        { style: 'olive', x: 84,  y: 103, h: 9,  w: 8, sway: 0.55 },
+        { style: 'pine',  x: 168, y: 102, h: 10, w: 5, sway: 0.55 },
+      ],
+    },
+
+    // Sheep / wheat country (Riverina, Wimmera, central NSW) — homestead + silos + windmill
+    'aussie-wheatbelt': {
+      name: 'Sheep & wheat country',
+      palette: {
+        hillFar: '#c8b078', hillFarDark: '#5a4a30', nightFar: '#2c2418',
+        hillMid: '#b8a060', hillMidDark: '#4a3e22', nightMid: '#1c1810',
+        hillNear: '#a89058', hillNearDark: '#3a2e18', nightNear: '#181208',
+      },
+      houses: [
+        // homestead — weatherboard with veranda
+        { style: 'weatherboard', x: 4,   y: 88, w: 26, h: 16, roofH: 3, body: '#e8d8b0', roof: '#7a7a7a', stumps: true, veranda: true, door: {x:11,y:9,w:4,h:7}, windows: [{x:3,y:4,w:4,h:5},{x:19,y:4,w:4,h:5}], overhang: 3 },
+        // grain silos (two big cylinders)
+        { style: 'silo', x: 38, y: 70, w: 10, h: 34, body: '#9aa0a8', topH: 4 },
+        { style: 'silo', x: 50, y: 74, w: 8, h: 30, body: '#aab0b8', topH: 3 },
+        // smaller shed
+        { style: 'tin-shack', x: 64, y: 94, w: 18, h: 10, roofH: 2, body: '#9a8a5a', roof: '#7a7a7a', windows: [{x:3,y:3,w:4,h:4}], door: {x:9,y:4,w:4,h:6} },
+        // windmill prop
+        { style: 'windmill', x: 88, y: 60, w: 11, h: 44, body: '#3a2818' },
+        // larger weatherboard homestead
+        { style: 'weatherboard', x: 104, y: 84, w: 30, h: 20, roofH: 4, body: '#f0e0c0', roof: '#7a7a7a', stumps: true, veranda: true, door: {x:13,y:12,w:4,h:8}, windows: [{x:4,y:5,w:5,h:6},{x:21,y:5,w:5,h:6}], overhang: 4 },
+        // hay shed
+        { style: 'tin-shack', x: 140, y: 90, w: 22, h: 14, roofH: 3, body: '#aa9258', roof: '#888888', windows: [], door: {x:10,y:9,w:4,h:5} },
+        // distant silos cluster
+        { style: 'silo', x: 168, y: 76, w: 9, h: 28, body: '#aab0b8', topH: 3 },
+        { style: 'silo', x: 180, y: 80, w: 8, h: 24, body: '#9aa0a8', topH: 3 },
+      ],
+      trees: [
+        { style: 'gum', x: 32,  y: 104, h: 14, w: 7, sway: 0.5 },
+        { style: 'gum', x: 152, y: 104, h: 16, w: 8, sway: 0.55 },
+        { style: 'gum', x: 192, y: 104, h: 12, w: 6, sway: 0.5 },
+      ],
+    },
+
     // Australian outback — red dirt, sparse corrugated iron shacks, big sky
     'aussie-outback': {
       name: 'Australian outback',
@@ -4216,6 +4534,69 @@
         && ['CN','NP','BT','IN'].includes(loc.country_code || '')
         && (loc.population || 0) < 200000,
       scene: 'mountain-monastery',
+    },
+    {
+      // Australian surf/beach corridor — Byron, Gold Coast, Sunshine Coast, Noosa
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -28.8 && loc.lat <= -27.7 && loc.lon >= 153.3 && loc.lon <= 153.7)   // GC + Byron
+          || (loc.lat >= -26.85 && loc.lat <= -26.30 && loc.lon >= 152.95 && loc.lon <= 153.20) // Sunshine Coast + Noosa
+        ),
+      scene: 'aussie-surf',
+    },
+    {
+      // Tasmanian fishing villages — west coast (Strahan, Stanley), east coast (Coles Bay, Bicheno)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -43.8 && loc.lat <= -40.5 && loc.lon >= 144.5 && loc.lon <= 145.8)  // west Tas coast
+          || (loc.lat >= -42.5 && loc.lat <= -41.5 && loc.lon >= 148.0 && loc.lon <= 148.6)  // east Tas coast
+        ),
+      scene: 'aussie-tasmania-fishing',
+    },
+    {
+      // Adelaide Hills (Hahndorf, Lobethal, Stirling)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && loc.lat >= -35.10 && loc.lat <= -34.85
+        && loc.lon >= 138.65 && loc.lon <= 138.95,
+      scene: 'aussie-adelaide-hills',
+    },
+    {
+      // Murray River towns (Echuca, Mildura, Mannum, Swan Hill)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -36.20 && loc.lat <= -36.05 && loc.lon >= 144.70 && loc.lon <= 144.85) // Echuca
+          || (loc.lat >= -34.25 && loc.lat <= -34.10 && loc.lon >= 142.10 && loc.lon <= 142.20) // Mildura
+          || (loc.lat >= -34.95 && loc.lat <= -34.85 && loc.lon >= 139.30 && loc.lon <= 139.40) // Mannum
+          || (loc.lat >= -35.40 && loc.lat <= -35.30 && loc.lon >= 143.50 && loc.lon <= 143.60) // Swan Hill
+        ),
+      scene: 'aussie-murray-river',
+    },
+    {
+      // Federation goldfields heritage — Ballarat, Bendigo, Beechworth, Castlemaine
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -37.60 && loc.lat <= -37.50 && loc.lon >= 143.80 && loc.lon <= 143.92) // Ballarat
+          || (loc.lat >= -36.80 && loc.lat <= -36.70 && loc.lon >= 144.25 && loc.lon <= 144.35) // Bendigo
+          || (loc.lat >= -36.40 && loc.lat <= -36.30 && loc.lon >= 146.65 && loc.lon <= 146.80) // Beechworth
+          || (loc.lat >= -37.10 && loc.lat <= -37.02 && loc.lon >= 144.15 && loc.lon <= 144.25) // Castlemaine
+        ),
+      scene: 'aussie-federation',
+    },
+    {
+      // Sheep/wheat belt (NSW Riverina, VIC Wimmera, central NSW, WA Wheatbelt)
+      match: (loc) => loc.country_code === 'AU'
+        && typeof loc.lat === 'number'
+        && (
+             (loc.lat >= -36.50 && loc.lat <= -33.00 && loc.lon >= 145.50 && loc.lon <= 148.50) // NSW Riverina + central
+          || (loc.lat >= -37.50 && loc.lat <= -35.50 && loc.lon >= 141.50 && loc.lon <= 144.50) // VIC Wimmera
+          || (loc.lat >= -33.50 && loc.lat <= -31.00 && loc.lon >= 116.50 && loc.lon <= 118.50) // WA Wheatbelt
+        ),
+      scene: 'aussie-wheatbelt',
     },
     {
       // Australian Outback / Red Centre — Northern Territory + central WA + central QLD interior
