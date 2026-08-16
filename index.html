@@ -124,6 +124,8 @@
     font-size: 12px;
   }
   .suggestion:hover { background: rgba(255,220,170,0.08); }
+  .suggestion.empty { cursor: default; color: var(--text-dim); }
+  .suggestion.empty:hover { background: none; }
   .suggestion .country { color: var(--text-dim); margin-left: 4px; font-size: 11px; }
 
   .status .row {
@@ -134,8 +136,16 @@
     font-variant-numeric: tabular-nums;
   }
   .status .row .k { color: var(--text-dim); }
+  .status .row.tappable { cursor: pointer; }
   .status .location { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
   .status .desc { color: var(--accent); margin-bottom: 8px; font-size: 12px; }
+  .status .attrib {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--text-dim);
+    opacity: 0.8;
+    letter-spacing: 0.04em;
+  }
 
   .controls {
     position: fixed;
@@ -144,7 +154,9 @@
     z-index: 10;
     display: flex;
     gap: 8px;
+    transition: opacity 0.4s ease;
   }
+  .controls.hidden { opacity: 0; pointer-events: none; }
   .icon-btn {
     width: 36px;
     height: 36px;
@@ -211,9 +223,10 @@
     <div class="panel status" id="status">
       <div class="location" id="loc-name">—</div>
       <div class="desc" id="weather-desc">tuning the view</div>
-      <div class="row"><span class="k">temperature</span><span id="temp">—</span></div>
-      <div class="row"><span class="k">wind</span><span id="wind">—</span></div>
+      <div class="row tappable" id="temp-row" title="Switch units"><span class="k">temperature</span><span id="temp">—</span></div>
+      <div class="row tappable" id="wind-row" title="Switch units"><span class="k">wind</span><span id="wind">—</span></div>
       <div class="row"><span class="k">local time</span><span id="local-time">—</span></div>
+      <div class="attrib">weather data by open-meteo.com</div>
     </div>
   </div>
 
@@ -274,6 +287,9 @@
     time: 0,
     lastFetch: 0,
     nextFetchAt: 0,
+    // network health
+    stale: false,           // last fetch failed — showing old (or default) weather
+    haveRealWeather: false, // at least one real reading (fetched or restored) applied
     flashUntil: 0,
     flashStrength: 0,
   };
@@ -5958,8 +5974,8 @@
     last = t;
     state.time += dt;
 
-    // periodic lightning
-    if (state.lightning && Math.random() < dt * 0.4 && t > state.flashUntil + 1500) {
+    // periodic lightning (flashUntil is in scene-time seconds; keep a 1.5s gap between flashes)
+    if (state.lightning && Math.random() < dt * 0.4 && state.time > state.flashUntil + 1.5) {
       state.flashUntil = state.time + 0.18;
       state.flashStrength = 0.5 + Math.random() * 0.4;
     }
@@ -5981,6 +5997,7 @@
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,wind_speed_10m,weather_code,is_day&timezone=auto&daily=sunrise,sunset&forecast_days=1`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error('weather http ' + res.status);
       const data = await res.json();
       const cur = data.current;
       state.weatherCode = cur.weather_code;
@@ -5994,11 +6011,19 @@
       const sunsetIso = data.daily.sunset[0];
       state.sunPhase = computeSunPhase(nowIso, sunriseIso, sunsetIso);
       state.location.tz = tz;
+      saveLocation(); // keep tz so a relaunch shows the right local time straight away
       applyWeatherCode(state.weatherCode);
+      state.stale = false;
+      state.haveRealWeather = true;
+      saveWeather();
+      state.nextFetchAt = performance.now() + 10 * 60 * 1000;
       pickScene(state.location);
       updateStatusUI();
     } catch (e) {
       console.warn('weather fetch failed', e);
+      state.stale = true;
+      state.nextFetchAt = performance.now() + 60 * 1000; // retry sooner while offline
+      updateStatusUI();
     } finally {
       showLoading(false);
     }
@@ -6038,6 +6063,7 @@
   async function geocode(query) {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en&format=json`;
     const res = await fetch(url);
+    if (!res.ok) throw new Error('geocode http ' + res.status);
     const data = await res.json();
     return (data.results || []).map(r => ({
       name: r.name,
@@ -6066,11 +6092,37 @@
 
   function showLoading(v) { loadingEl.classList.toggle('show', v); }
 
+  // ---------- units ----------
+  // Auto-pick imperial for countries that use Fahrenheit; tapping the
+  // temperature or wind row toggles, and an explicit choice sticks.
+  const IMPERIAL_CCS = new Set(['US', 'LR', 'MM']);
+  let unitPref = null; // null = auto from location, else 'metric' | 'imperial'
+  try { unitPref = localStorage.getItem('cozy-window-units') || null; } catch {}
+  function usingImperial() {
+    if (unitPref === 'imperial') return true;
+    if (unitPref === 'metric') return false;
+    return IMPERIAL_CCS.has((state.location.country_code || '').toUpperCase());
+  }
+  function toggleUnits() {
+    unitPref = usingImperial() ? 'metric' : 'imperial';
+    try { localStorage.setItem('cozy-window-units', unitPref); } catch {}
+    updateStatusUI();
+  }
+  $('temp-row').addEventListener('click', toggleUnits);
+  $('wind-row').addEventListener('click', toggleUnits);
+
   function updateStatusUI() {
     locName.textContent = `${state.location.name}${state.location.admin ? ', ' + state.location.admin : ''}${state.location.country ? ' · ' + state.location.country : ''}`;
-    weatherDesc.textContent = state.weatherDesc || '';
-    tempEl.textContent = `${Math.round(state.temperatureC)}°C`;
-    windEl.textContent = `${Math.round(state.windKph)} km/h`;
+    let desc = state.weatherDesc || '';
+    if (state.stale) desc = state.haveRealWeather ? desc + ' · last known' : 'offline — waiting for the sky';
+    weatherDesc.textContent = desc;
+    if (usingImperial()) {
+      tempEl.textContent = `${Math.round(state.temperatureC * 9 / 5 + 32)}°F`;
+      windEl.textContent = `${Math.round(state.windKph * 0.621371)} mph`;
+    } else {
+      tempEl.textContent = `${Math.round(state.temperatureC)}°C`;
+      windEl.textContent = `${Math.round(state.windKph)} km/h`;
+    }
     try {
       const opts = { hour: '2-digit', minute: '2-digit', timeZone: state.location.tz };
       localTimeEl.textContent = new Date().toLocaleTimeString([], opts);
@@ -6081,6 +6133,41 @@
   // refresh local time every 30s
   setInterval(updateStatusUI, 30000);
 
+  function chooseLocation(r) {
+    state.location = { name: r.name, country: r.country, country_code: r.country_code, admin: r.admin, lat: r.lat, lon: r.lon, population: r.population };
+    saveLocation();
+    locInput.value = '';
+    locInput.blur();
+    sugg.classList.remove('open');
+    sugg.innerHTML = '';
+    fetchWeather(state.location);
+  }
+
+  function renderSuggestions(results) {
+    sugg.innerHTML = '';
+    for (const r of results) {
+      const div = document.createElement('div');
+      div.className = 'suggestion';
+      div.textContent = r.name + (r.admin ? ', ' + r.admin : '');
+      const country = document.createElement('span');
+      country.className = 'country';
+      country.textContent = r.country;
+      div.appendChild(country);
+      div.addEventListener('click', () => chooseLocation(r));
+      sugg.appendChild(div);
+    }
+    sugg.classList.toggle('open', results.length > 0);
+  }
+
+  function showNoMatch() {
+    sugg.innerHTML = '';
+    const div = document.createElement('div');
+    div.className = 'suggestion empty';
+    div.textContent = 'no place found — try another spelling';
+    sugg.appendChild(div);
+    sugg.classList.add('open');
+  }
+
   let searchTimer = 0;
   locInput.addEventListener('input', () => {
     clearTimeout(searchTimer);
@@ -6088,49 +6175,49 @@
     if (q.length < 2) { sugg.classList.remove('open'); sugg.innerHTML = ''; return; }
     searchTimer = setTimeout(async () => {
       try {
-        const results = await geocode(q);
-        sugg.innerHTML = '';
-        for (const r of results) {
-          const div = document.createElement('div');
-          div.className = 'suggestion';
-          div.innerHTML = `${r.name}${r.admin ? ', ' + r.admin : ''}<span class="country">${r.country}</span>`;
-          div.addEventListener('click', () => {
-            state.location = { name: r.name, country: r.country, country_code: r.country_code, admin: r.admin, lat: r.lat, lon: r.lon, population: r.population };
-            saveLocation();
-            locInput.value = '';
-            sugg.classList.remove('open');
-            state.nextFetchAt = 0;
-            fetchWeather(state.location);
-          });
-          sugg.appendChild(div);
-        }
-        sugg.classList.toggle('open', results.length > 0);
+        renderSuggestions(await geocode(q));
       } catch (e) {
         console.warn('geocode failed', e);
       }
     }, 220);
   });
-  locInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      const first = sugg.querySelector('.suggestion');
-      if (first) first.click();
+
+  // Enter / the Look button: take the first suggestion if the list is up,
+  // otherwise geocode the typed text directly — no waiting on the debounce.
+  async function submitSearch() {
+    const first = sugg.querySelector('.suggestion:not(.empty)');
+    if (first) { first.click(); return; }
+    const q = locInput.value.trim();
+    if (q.length < 2) return;
+    clearTimeout(searchTimer);
+    showLoading(true);
+    try {
+      const results = await geocode(q);
+      if (results.length) chooseLocation(results[0]);
+      else showNoMatch();
+    } catch (e) {
+      console.warn('geocode failed', e);
+    } finally {
+      showLoading(false);
     }
+  }
+
+  locInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitSearch();
     if (e.key === 'Escape') {
       sugg.classList.remove('open');
       locInput.blur();
     }
   });
-  locGo.addEventListener('click', () => {
-    const first = sugg.querySelector('.suggestion');
-    if (first) first.click();
-    else if (locInput.value.trim().length >= 2) locInput.dispatchEvent(new Event('input'));
-  });
+  locGo.addEventListener('click', submitSearch);
 
   // hide UI / fullscreen
+  let hintExpired = false;
   function setUiHidden(v) {
     ui.classList.toggle('hidden', v);
     document.querySelector('.controls').classList.toggle('hidden', v);
-    hint.classList.toggle('hidden', v);
+    if (v) hint.classList.add('hidden');
+    else if (!hintExpired) hint.classList.remove('hidden');
   }
   let uiHidden = false;
   $('hide-ui').addEventListener('click', () => {
@@ -6148,7 +6235,44 @@
   });
 
   // hint fades after 6s
-  setTimeout(() => hint.classList.add('hidden'), 6000);
+  setTimeout(() => { hintExpired = true; hint.classList.add('hidden'); }, 6000);
+
+  // ---------- ambient auto-hide ----------
+  // It's a window, not a dashboard: after 45s without interaction the panels
+  // fade out on their own. Any tap or click brings everything back (including
+  // an explicit hide, so touch users are never stranded); mouse movement only
+  // wakes an auto-hide, so a deliberate hide survives a nudged mouse.
+  const AUTO_HIDE_MS = 45000;
+  let autoHidden = false;
+  let idleTimer = 0;
+  function armIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (uiHidden || autoHidden || document.activeElement === locInput || sugg.classList.contains('open')) {
+        armIdleTimer();
+        return;
+      }
+      autoHidden = true;
+      setUiHidden(true);
+    }, AUTO_HIDE_MS);
+  }
+  document.addEventListener('pointerdown', () => {
+    if (autoHidden || uiHidden) {
+      autoHidden = false;
+      uiHidden = false;
+      setUiHidden(false);
+    }
+    armIdleTimer();
+  }, true);
+  document.addEventListener('pointermove', () => {
+    if (autoHidden) {
+      autoHidden = false;
+      setUiHidden(false);
+    }
+    armIdleTimer();
+  }, true);
+  document.addEventListener('keydown', () => armIdleTimer(), true);
+  armIdleTimer();
 
   // persistence
   function saveLocation() {
@@ -6159,6 +6283,35 @@
       const s = localStorage.getItem('cozy-window-location');
       if (s) state.location = JSON.parse(s);
     } catch {}
+  }
+  // last successful reading, so an offline relaunch shows real weather
+  // (briefly stale) instead of a placeholder clear sky
+  function saveWeather() {
+    try {
+      localStorage.setItem('cozy-window-weather', JSON.stringify({
+        code: state.weatherCode,
+        tempC: state.temperatureC,
+        windKph: state.windKph,
+        isDay: state.isDay,
+        sunPhase: state.sunPhase,
+        tz: state.location.tz || '',
+      }));
+    } catch {}
+  }
+  function loadWeather() {
+    try {
+      const s = JSON.parse(localStorage.getItem('cozy-window-weather') || 'null');
+      if (!s || typeof s.code !== 'number') return false;
+      state.weatherCode = s.code;
+      state.temperatureC = s.tempC;
+      state.windKph = s.windKph;
+      state.isDay = s.isDay;
+      state.sunPhase = s.sunPhase;
+      if (s.tz && !state.location.tz) state.location.tz = s.tz;
+      applyWeatherCode(s.code);
+      state.haveRealWeather = true;
+      return true;
+    } catch { return false; }
   }
 
   // ---------- boot ----------
@@ -6174,11 +6327,14 @@
       }
       saveLocation();
     }
-    applyWeatherCode(0);
+    if (!loadWeather()) applyWeatherCode(0);
     pickScene(state.location);
     updateStatusUI();
-    await fetchWeather(state.location);
+    // Start drawing straight away — don't hold the scene black waiting on the
+    // network. The fetch reschedules itself (or retries) when it settles.
+    state.nextFetchAt = performance.now() + 10 * 60 * 1000;
     requestAnimationFrame(loop);
+    fetchWeather(state.location);
   }
   boot();
 })();
